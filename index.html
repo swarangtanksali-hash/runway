@@ -187,12 +187,15 @@ canvas{display:block}
       <div class="stbl-hd">
         <div class="th">Scenario</div>
         <div class="th">Runway</div>
-        <div class="th">ARR Growth <span class="th-b">%/mo</span></div>
-        <div class="th">Churn <span class="th-r">%/mo</span></div>
+        <div class="th">NEW ARR <span class="th-b">%/mo</span></div>
+        <div class="th">$ Churn <span class="th-r">%/mo</span></div>
         <div class="th">Exp Growth <span class="th-r">%/mo</span></div>
         <div class="th">One-Time Events</div>
       </div>
       <div id="srows"></div>
+      <div style="padding:7px 12px;background:var(--bg3);border-top:.5px solid var(--border);font-size:9px;color:var(--muted);font-family:var(--mono);line-height:1.6">
+        <span style="color:var(--bs)">NEW ARR</span> = Net new + Expansion on the opening MRR base each month &nbsp;·&nbsp; <span style="color:var(--rs)">$ Churn</span> = MRR $ lost as % of opening MRR (not logo churn)
+      </div>
       <!-- Add event inline form -->
       <div class="ev-form-wrap" id="ev-form-wrap">
         <div class="ev-form-inner">
@@ -235,8 +238,8 @@ const S = {
   ],
   sc:{
     S1:{growth:0,  churn:0,  expGrowth:0,  useRevenue:false,useEvents:false,useFunding:false},
-    S2:{growth:10, churn:15, expGrowth:1,  useRevenue:true, useEvents:true, useFunding:false},
-    S3:{growth:15, churn:12, expGrowth:1,  useRevenue:true, useEvents:true, useFunding:true },
+    S2:{growth:23, churn:10, expGrowth:1,  useRevenue:true, useEvents:true, useFunding:false},
+    S3:{growth:30, churn:7,  expGrowth:1,  useRevenue:true, useEvents:true, useFunding:true },
   }
 };
 let nextId=3;
@@ -379,7 +382,7 @@ function buildExec(){
     // Sub-point: ARR growth difference
     if(growthDelta!==0){
       const sign=growthDelta>0;
-      lines.push(`&nbsp;&nbsp;&nbsp;↳ ARR growth <span class="${sign?'ng':'nr'}">${sign?'+':''}${fPct(growthDelta)}/mo</span> higher in S3 (${fPct(sc2.growth)} → ${fPct(sc3.growth)}) — contributes <span class="${sign?'ng':'nr'}">${sign?'+':''}${growthDays>0?growthDays:Math.abs(growthDays)} days</span> of runway and an estimated <span class="${sign?'ng':'nr'}">${sign?'+':'−'}${fs$(Math.abs(arrRevDelta))}</span> in additional revenue over 12 months.`);
+      lines.push(`&nbsp;&nbsp;&nbsp;↳ New ARR <span class="${sign?'ng':'nr'}">${sign?'+':''}${fPct(growthDelta)}/mo</span> higher in S3 (${fPct(sc2.growth)} → ${fPct(sc3.growth)}) — contributes <span class="${sign?'ng':'nr'}">${sign?'+':''}${growthDays>0?growthDays:Math.abs(growthDays)} days</span> of runway and an estimated <span class="${sign?'ng':'nr'}">${sign?'+':'−'}${fs$(Math.abs(arrRevDelta))}</span> in additional revenue over 12 months.`);
     }
 
     // Sub-point: churn difference
