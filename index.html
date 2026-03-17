@@ -8,9 +8,9 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:     #0d1117;--bg2:#161b27;--bg3:#1c2333;--bg4:#222a3a;
-  --border: rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.04);
-  --text:   #dde2ed;--muted:#6b7280;--dim:#9ca3af;
+  --bg:#0d1117;--bg2:#161b27;--bg3:#1c2333;--bg4:#222a3a;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.04);
+  --text:#dde2ed;--muted:#6b7280;--dim:#9ca3af;
   --red:#ef4444;--rs:#fca5a5;
   --grn:#22c55e;--gs:#86efac;
   --blu:#3b82f6;--bs:#93c5fd;
@@ -23,14 +23,16 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13px;line-height:1.5;padding:22px 14px 60px}
-.wrap{max-width:1060px;margin:0 auto}
+.wrap{max-width:1080px;margin:0 auto}
 
+/* Header */
 .ph{display:flex;align-items:baseline;gap:10px;margin-bottom:18px;padding-bottom:12px;border-bottom:.5px solid var(--border)}
 .ph-ttl{font-family:var(--mono);font-size:14px;font-weight:600;letter-spacing:.05em}
 .ph-sub{color:var(--muted);font-size:11px}
 .live{margin-left:auto;font-size:10px;font-family:var(--mono);background:rgba(34,197,94,.1);color:var(--grn);border:.5px solid rgba(34,197,94,.25);padding:2px 8px;border-radius:10px;letter-spacing:.08em}
 .live::before{content:'● '}
 
+/* Exec summary */
 .exec{background:var(--bg2);border:.5px solid var(--border);border-left:3px solid var(--blu);border-radius:6px;padding:16px 20px;margin-bottom:14px;box-shadow:var(--shadow)}
 .exec-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--blu);text-transform:uppercase;margin-bottom:10px;opacity:.8}
 .exec-body{font-size:13px;line-height:1.95;color:#c4cedf;font-family:var(--sans)}
@@ -41,14 +43,17 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13
 .na{color:var(--as);font-family:var(--mono);font-weight:500}
 .np{color:var(--pur);font-family:var(--mono);font-weight:500}
 
+/* KPI strip */
 .kpi-strip{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
 .kc{flex:1;min-width:130px;background:var(--bg2);border:.5px solid var(--border);border-radius:5px;padding:11px 13px;box-shadow:var(--shadow)}
 .kc-lbl{font-size:9px;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;margin-bottom:4px;font-family:var(--mono)}
 .kc-val{font-family:var(--mono);font-size:17px;font-weight:600;line-height:1.1}
 .kc-sub{font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:2px}
 
-.layout{display:grid;grid-template-columns:252px 1fr;gap:12px;align-items:start}
+/* Layout */
+.layout{display:grid;grid-template-columns:240px 1fr;gap:12px;align-items:start}
 
+/* Left panel */
 .lp{background:var(--bg2);border:.5px solid var(--border);border-radius:6px;padding:15px;box-shadow:var(--shadow);position:sticky;top:16px}
 .sec{font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:11px;padding-bottom:7px;border-bottom:.5px solid var(--border)}
 .ig{margin-bottom:10px}
@@ -59,36 +64,18 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13
 .hr{border:none;border-top:.5px solid var(--border);margin:11px 0}
 .fund-impact{font-size:10px;color:var(--gs);font-family:var(--mono);line-height:1.5;margin-top:5px;padding:6px 8px;background:rgba(34,197,94,.05);border:.5px solid rgba(34,197,94,.15);border-radius:4px;display:none}
 
-.ev-list{display:flex;flex-direction:column;gap:4px;margin-bottom:7px}
-.ev-row{display:flex;gap:4px;align-items:center;padding:5px 7px;background:var(--bg3);border:.5px solid var(--border);border-radius:4px}
-.ev-mo{font-family:var(--mono);font-size:10px;color:var(--bs);min-width:22px}
-.ev-lbl{flex:1;font-size:10px;color:var(--dim);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.ev-amt{font-family:var(--mono);font-size:10px;min-width:48px;text-align:right}
-.ev-exp{color:var(--rs)}.ev-inc{color:var(--gs)}
-.ev-del{width:16px;height:16px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;border-radius:3px}
-.ev-del:hover{color:var(--red);background:rgba(239,68,68,.1)}
-.add-btn{font-size:10px;font-family:var(--mono);color:var(--blu);background:none;border:.5px dashed rgba(59,130,246,.4);border-radius:4px;cursor:pointer;padding:5px;width:100%;letter-spacing:.04em}
-.add-btn:hover{background:rgba(59,130,246,.06)}
-.add-form{background:var(--bg3);border:.5px solid rgba(59,130,246,.25);border-radius:4px;padding:9px;margin-top:6px;display:none;flex-direction:column;gap:5px}
-.add-form.open{display:flex}
-.add-form input,.add-form select{background:var(--bg);border:.5px solid var(--border);color:var(--text);border-radius:3px;padding:4px 6px;font-family:var(--mono);font-size:11px;outline:none;width:100%}
-.add-form input:focus,.add-form select:focus{border-color:var(--blu)}
-.af-row{display:flex;gap:4px}.af-row>*{flex:1}
-.af-btns{display:flex;gap:4px}
-.btn-ok,.btn-no{flex:1;padding:4px;border-radius:3px;font-size:10px;font-family:var(--mono);cursor:pointer;border:none;letter-spacing:.04em}
-.btn-ok{background:var(--blu);color:#fff}.btn-ok:hover{background:#2563eb}
-.btn-no{background:var(--bg3);color:var(--muted);border:.5px solid var(--border)}.btn-no:hover{color:var(--text)}
-
+/* Right col */
 .rcol{display:flex;flex-direction:column;gap:12px}
 
 /* Scenario table */
 .stbl{background:var(--bg2);border:.5px solid var(--border);border-radius:6px;overflow:hidden;box-shadow:var(--shadow)}
-.stbl-hd{display:grid;grid-template-columns:150px 108px 1fr 1fr 1fr 60px 90px;padding:8px 12px;background:var(--bg3);border-bottom:.5px solid var(--border);gap:6px}
+/* cols: name | runway | arr | churn | exp | events */
+.stbl-hd{display:grid;grid-template-columns:148px 106px 76px 90px 76px 1fr;padding:8px 12px;background:var(--bg3);border-bottom:.5px solid var(--border);gap:6px}
 .th{font-family:var(--mono);font-size:9px;letter-spacing:.09em;color:var(--muted);text-transform:uppercase;display:flex;align-items:center;gap:3px}
-.th-tag{font-size:8px;color:var(--rs)}
-.th-tag-b{font-size:8px;color:var(--bs)}
+.th-r{font-size:8px;color:var(--rs)}
+.th-b{font-size:8px;color:var(--bs)}
 
-.srow{display:grid;grid-template-columns:150px 108px 1fr 1fr 1fr 60px 90px;padding:11px 12px;border-bottom:.5px solid var(--border2);gap:6px;align-items:center}
+.srow{display:grid;grid-template-columns:148px 106px 76px 90px 76px 1fr;padding:11px 12px;border-bottom:.5px solid var(--border2);gap:6px;align-items:start}
 .srow:last-child{border-bottom:none}
 .srow.plan{background:var(--plan-bg);border-left:2px solid var(--blu)}
 .srow:hover{background:rgba(255,255,255,.015)}
@@ -102,27 +89,55 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13
 .rw-days{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:1px}
 .rw-pill{display:inline-block;font-size:9px;font-family:var(--mono);padding:1px 7px;border-radius:8px;margin-top:3px}
 .p-r{background:rgba(239,68,68,.1);color:var(--rs);border:.5px solid rgba(239,68,68,.2)}
-.p-a{background:rgba(245,158,11,.1);color:var(--as);border:.5px solid rgba(245,158,11,.2)}
 .p-b{background:rgba(59,130,246,.1);color:var(--bs);border:.5px solid rgba(59,130,246,.2)}
 .p-g{background:rgba(34,197,94,.1);color:var(--gs);border:.5px solid rgba(34,197,94,.2)}
 
-/* Per-scenario inline inputs */
+/* Per-scenario inputs */
 .sc-inp-wrap{display:flex;flex-direction:column;gap:1px}
 .sc-inp{width:100%;padding:5px 7px;background:var(--bg4);border:.5px solid var(--border);border-radius:3px;color:var(--text);font-family:var(--mono);font-size:11px;text-align:right;outline:none;transition:border-color .15s}
 .sc-inp:focus{border-color:var(--blu)}
 .sc-inp:disabled{opacity:.35;cursor:not-allowed;background:var(--bg3)}
 .sc-inp-lbl{font-size:9px;color:var(--muted);font-family:var(--mono);text-align:right;margin-top:1px}
 
-.ev-cell{font-size:10px;color:var(--muted);font-family:var(--mono)}
-.cash18{font-family:var(--mono);font-size:12px}
+/* Events column inside table */
+.ev-col{display:flex;flex-direction:column;gap:3px}
+.ev-tag{display:flex;align-items:center;gap:3px;padding:3px 6px;background:var(--bg3);border:.5px solid var(--border);border-radius:3px;font-size:10px}
+.ev-tag-mo{font-family:var(--mono);font-size:9px;color:var(--bs);min-width:18px}
+.ev-tag-lbl{flex:1;color:var(--dim);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:10px}
+.ev-tag-amt{font-family:var(--mono);font-size:9px;min-width:38px;text-align:right}
+.ev-exp{color:var(--rs)}.ev-inc{color:var(--gs)}
+.ev-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;line-height:1;padding:0 1px;border-radius:2px}
+.ev-del:hover{color:var(--red)}
+.ev-impact{font-size:9px;font-family:var(--mono);margin-top:1px;padding-left:2px;line-height:1.3}
+.ev-impact.neg{color:rgba(252,165,165,0.7)}.ev-impact.pos{color:rgba(134,239,172,0.7)}
+.add-ev-btn{font-size:9px;font-family:var(--mono);color:var(--blu);background:none;border:.5px dashed rgba(59,130,246,.35);border-radius:3px;cursor:pointer;padding:3px 6px;width:100%;letter-spacing:.04em;margin-top:1px;text-align:center}
+.add-ev-btn:hover{background:rgba(59,130,246,.06)}
+.ev-off{font-size:10px;color:var(--muted);font-family:var(--mono);padding:4px 0}
+
+/* Add event modal-ish inline form (shared, floats below last row) */
+.ev-form-wrap{padding:10px 12px;background:var(--bg3);border-top:.5px solid var(--border);display:none}
+.ev-form-wrap.open{display:block}
+.ev-form-inner{display:flex;gap:6px;align-items:flex-end;flex-wrap:wrap}
+.ev-form-inner input,.ev-form-inner select{padding:5px 7px;background:var(--bg4);border:.5px solid var(--border);color:var(--text);border-radius:3px;font-family:var(--mono);font-size:11px;outline:none}
+.ev-form-inner input:focus,.ev-form-inner select:focus{border-color:var(--blu)}
+.ef-name-in{width:140px}
+.ef-type-in{width:90px}
+.ef-amt-in{width:90px}
+.ef-mo-in{width:60px}
+.btn-ok,.btn-no{padding:5px 12px;border-radius:3px;font-size:10px;font-family:var(--mono);cursor:pointer;border:none;letter-spacing:.04em}
+.btn-ok{background:var(--blu);color:#fff}.btn-ok:hover{background:#2563eb}
+.btn-no{background:var(--bg4);color:var(--muted);border:.5px solid var(--border)}.btn-no:hover{color:var(--text)}
+
 .col-r{color:var(--rs)}.col-g{color:var(--gs)}.col-b{color:var(--bs)}.col-m{color:var(--muted)}
 
 /* Chart */
-.chart-card{background:var(--bg2);border:.5px solid var(--border);border-radius:6px;padding:15px;box-shadow:var(--shadow)}
+.chart-card{background:var(--bg2);border:.5px solid var(--border);border-radius:6px;padding:14px 15px;box-shadow:var(--shadow)}
 .c-leg{display:flex;gap:14px;margin-bottom:10px;flex-wrap:wrap}
 .c-li{display:flex;align-items:center;gap:6px;font-size:10px;font-family:var(--mono);color:var(--dim)}
 .c-line{width:22px;height:2px;border-radius:1px}
-.c-dash{background:none!important;border-top:2px dashed}
+input[type=number]{-moz-appearance:textfield}
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 canvas{display:block}
 </style>
 </head>
@@ -131,7 +146,7 @@ canvas{display:block}
 
 <div class="ph">
   <span class="ph-ttl">RUNWAY DASHBOARD</span>
-  <span class="ph-sub">18-month horizon · M1 = Mar '26</span>
+  <span class="ph-sub">22-month horizon · M1 = Mar '26 → Dec '27</span>
   <span class="live">LIVE</span>
 </div>
 
@@ -142,13 +157,15 @@ canvas{display:block}
 
 <div class="kpi-strip">
   <div class="kc"><div class="kc-lbl">Starting Cash</div><div class="kc-val col-b" id="kpi-cash">—</div></div>
-  <div class="kc"><div class="kc-lbl">Realistic Runway (C3)</div><div class="kc-val col-b" id="kpi-rw">—</div><div class="kc-sub" id="kpi-rw-sub">—</div></div>
+  <div class="kc"><div class="kc-lbl">S2 Realistic Runway</div><div class="kc-val col-b" id="kpi-rw">—</div><div class="kc-sub" id="kpi-rw-sub">—</div></div>
   <div class="kc"><div class="kc-lbl">Net Monthly Burn</div><div class="kc-val" id="kpi-nb">—</div><div class="kc-sub">Gross Burn − MRR</div></div>
   <div class="kc"><div class="kc-lbl">Current MRR</div><div class="kc-val col-g" id="kpi-mrr">—</div><div class="kc-sub" id="kpi-arr">—</div></div>
-  <div class="kc"><div class="kc-lbl">C3 Churn Rate</div><div class="kc-val col-r" id="kpi-ch">—</div><div class="kc-sub" id="kpi-ach">—</div></div>
+  <div class="kc"><div class="kc-lbl">S2 Churn Rate</div><div class="kc-val col-r" id="kpi-ch">—</div><div class="kc-sub" id="kpi-ach">—</div></div>
 </div>
 
 <div class="layout">
+
+  <!-- LEFT PANEL -->
   <div class="lp">
     <div class="sec">Baseline Inputs</div>
     <div class="ig"><div class="ig-lbl">Starting Cash ($)</div><input class="fi" type="number" id="in-cash" value="4880000"></div>
@@ -158,84 +175,90 @@ canvas{display:block}
     <div class="hr"></div>
     <div class="sec">Funding Event</div>
     <div class="ig"><div class="ig-lbl">Amount ($) <em>blank = none</em></div><input class="fi" type="number" id="in-fund-amt" placeholder="e.g. 2000000"></div>
-    <div class="ig"><div class="ig-lbl">Closes in Month <em>1–18</em></div><input class="fi" type="number" id="in-fund-mo" value="6" min="1" max="18"></div>
+    <div class="ig"><div class="ig-lbl">Closes in Month <em>1–36</em></div><input class="fi" type="number" id="in-fund-mo" value="6" min="1" max="36"></div>
     <div class="fund-impact" id="fund-impact"></div>
-
-    <div class="hr"></div>
-    <div class="sec">One-Time Events</div>
-    <div class="ev-list" id="ev-list"></div>
-    <button class="add-btn" onclick="openForm()">+ Add Event</button>
-    <div class="add-form" id="add-form">
-      <input type="text" id="ef-name" placeholder="Label (e.g. Marketing Burst)">
-      <div class="af-row">
-        <select id="ef-type"><option value="expense">Expense</option><option value="income">Income</option></select>
-        <input type="number" id="ef-amt" placeholder="Amount $">
-        <input type="number" id="ef-mo" placeholder="Mo" min="1" max="18">
-      </div>
-      <div class="af-btns">
-        <button class="btn-no" onclick="closeForm()">Cancel</button>
-        <button class="btn-ok" onclick="saveEvent()">Add</button>
-      </div>
-    </div>
   </div>
 
+  <!-- RIGHT COL -->
   <div class="rcol">
+
+    <!-- SCENARIO TABLE -->
     <div class="stbl">
       <div class="stbl-hd">
         <div class="th">Scenario</div>
         <div class="th">Runway</div>
-        <div class="th">ARR Growth <span class="th-tag-b">%/mo</span></div>
-        <div class="th">Churn <span class="th-tag">%/mo</span></div>
-        <div class="th">Exp Growth <span class="th-tag">%/mo</span></div>
-        <div class="th">Events</div>
-        <div class="th">Cash @ 18mo</div>
+        <div class="th">ARR Growth <span class="th-b">%/mo</span></div>
+        <div class="th">Churn <span class="th-r">%/mo</span></div>
+        <div class="th">Exp Growth <span class="th-r">%/mo</span></div>
+        <div class="th">One-Time Events</div>
       </div>
       <div id="srows"></div>
+      <!-- Add event inline form -->
+      <div class="ev-form-wrap" id="ev-form-wrap">
+        <div class="ev-form-inner">
+          <input class="ef-name-in" type="text" id="ef-name" placeholder="Label (e.g. Marketing Burst)">
+          <select class="ef-type-in" id="ef-type"><option value="expense">Expense</option><option value="income">Income</option></select>
+          <input class="ef-amt-in" type="number" id="ef-amt" placeholder="Amount $">
+          <input class="ef-mo-in" type="number" id="ef-mo" placeholder="From Mo" min="1" max="22">
+          <input class="ef-mo-in" type="number" id="ef-mo-end" placeholder="To Mo" min="1" max="22">
+          <button class="btn-ok" onclick="saveEvent()">Add</button>
+          <button class="btn-no" onclick="closeForm()">Cancel</button>
+        </div>
+        <div style="font-size:9px;color:var(--muted);font-family:var(--mono);margin-top:5px;padding:0 2px">Leave "To Mo" blank for a single-month event, or set it higher for a recurring charge (e.g. From 2 To 5 = months 2, 3, 4, 5)</div>
+      </div>
     </div>
 
+    <!-- CHART -->
     <div class="chart-card">
       <div class="c-leg">
-        <div class="c-li"><div class="c-line" style="background:var(--red)"></div>C1 Conservative</div>
-        <div class="c-li"><div class="c-line" style="background:var(--blu)"></div>C3 Realistic <span style="color:var(--blu);margin-left:3px">▶ plan</span></div>
-        <div class="c-li"><div class="c-line" style="background:var(--grn)"></div>C4 Optimistic</div>
+        <div class="c-li"><div class="c-line" style="background:var(--red)"></div>S1 Conservative</div>
+        <div class="c-li"><div class="c-line" style="background:var(--blu)"></div>S2 Realistic</div>
+        <div class="c-li"><div class="c-line" style="background:var(--grn)"></div>S3 Optimistic</div>
       </div>
-      <canvas id="chart" height="220"></canvas>
+      <canvas id="chart" height="130"></canvas>
     </div>
+
   </div>
 </div>
 
 <script>
+// ── HORIZON ──────────────────────────────────────────────────────────────
+const HORIZON = 22; // Mar '26 → Dec '27
+
+// ── STATE ────────────────────────────────────────────────────────────────
 const S = {
   cash:4880000, mrr:14250, burn:345000,
   fundAmt:0, fundMo:6,
   events:[
-    {id:1,label:'AI Burst',    type:'expense',amount:50000, month:2},
-    {id:2,label:'AI Burst',    type:'expense',amount:50000, month:3},
-    {id:3,label:'Marketing Burst',type:'expense',amount:75000,month:6},
-    {id:4,label:'Marketing Burst',type:'expense',amount:75000,month:7},
+    {id:1,label:'AI Burst',       type:'expense',amount:25000, month:2, monthEnd:4},
+    {id:2,label:'Marketing Burst',type:'expense',amount:37500, month:6, monthEnd:7},
   ],
   sc:{
-    C1:{growth:0,  churn:0,  expGrowth:1,  useRevenue:false,useEvents:false,useFunding:false},
-    C3:{growth:10, churn:15, expGrowth:1,  useRevenue:true, useEvents:true, useFunding:false},
-    C4:{growth:15, churn:12, expGrowth:1,  useRevenue:true, useEvents:true, useFunding:true },
+    S1:{growth:0,  churn:0,  expGrowth:0,  useRevenue:false,useEvents:false,useFunding:false},
+    S2:{growth:10, churn:15, expGrowth:1,  useRevenue:true, useEvents:true, useFunding:false},
+    S3:{growth:15, churn:12, expGrowth:1,  useRevenue:true, useEvents:true, useFunding:true },
   }
 };
-let nextId=5;
+let nextId=3;
 
+// ── DATES ─────────────────────────────────────────────────────────────────
 const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-function moLbl(m){const d=new Date(2026,2,1);d.setMonth(d.getMonth()+(m-1));return MO[d.getMonth()]+" '"+(d.getFullYear()%100).toString().padStart(2,'0');}
+function moLbl(m){ // m=1→Mar'26
+  const d=new Date(2026,2,1);
+  d.setMonth(d.getMonth()+(m-1));
+  return MO[d.getMonth()]+" '"+(d.getFullYear()%100).toString().padStart(2,'0');
+}
 
+// ── FORMAT ────────────────────────────────────────────────────────────────
 function f$(n){const a=Math.abs(n),s=n<0?'-':'';if(a>=1e6)return s+'$'+(a/1e6).toFixed(2)+'M';if(a>=1e3)return s+'$'+(a/1e3).toFixed(0)+'K';return s+'$'+Math.round(a).toLocaleString();}
 function fs$(n){const a=Math.abs(n),s=n<0?'-':'';if(a>=1e6)return s+'$'+(a/1e6).toFixed(1)+'M';if(a>=1e3)return s+'$'+(a/1e3).toFixed(0)+'K';return s+'$'+Math.round(a).toLocaleString();}
 function fRw(mo){
   if(mo===null||isNaN(mo))return'—';
-  if(mo>=18)return'18+ mo';
   const m=Math.floor(mo),d=Math.round((mo-m)*30.4375);
   return m+' mo'+(d?' '+d+'d':'');
 }
 function fRwFull(mo){
   if(mo===null||isNaN(mo))return'—';
-  if(mo>=18)return'18+ mo';
   const m=Math.floor(mo),d=Math.round((mo-m)*30.4375);
   if(d===0)return m+' months';
   return m+' months '+d+' days';
@@ -249,156 +272,254 @@ function fDelta(mo){
 function fPct(v){return v.toFixed(1)+'%'}
 function fAnn(m){return((1-Math.pow(1-m/100,12))*100).toFixed(1)+'%'}
 
-function simulate(cfg){
+// ── SIMULATE ──────────────────────────────────────────────────────────────
+// Simulate up to `horizon` months, return runway (fractional months), cash array, final cash
+function simulate(cfg, horizon){
+  horizon = horizon || HORIZON;
   const{startCash,startMrr,startBurn,growth,churn,expGrowth,fundAmt,fundMo,events,useRevenue,useEvents,useFunding}=cfg;
   const arr=[startCash];
   let cash=startCash,mrr=startMrr,runout=null;
-  for(let m=1;m<=18;m++){
+  for(let m=1;m<=horizon;m++){
     const burn=startBurn*Math.pow(1+expGrowth/100,m-1);
     let evD=0;
-    if(useEvents&&events)for(const e of events)if(e.month===m)evD+=(e.type==='income'?1:-1)*e.amount;
+    if(useEvents&&events)for(const e of events){const end=e.monthEnd||e.month;if(m>=e.month&&m<=end)evD+=(e.type==='income'?1:-1)*e.amount;}
     const fd=(useFunding&&fundAmt>0&&m===fundMo)?fundAmt:0;
     const rev=useRevenue?mrr:0;
     const prev=cash;
     cash=cash-burn+rev+evD+fd;
     arr.push(Math.max(cash,0));
     if(runout===null&&cash<=0){const fr=prev/(prev-cash);runout=(m-1)+fr;}
-    if(useRevenue){mrr=Math.max(mrr+mrr*(growth/100)-mrr*(churn/100),0);}
+    if(useRevenue)mrr=Math.max(mrr+mrr*(growth/100)-mrr*(churn/100),0);
   }
-  const fc=arr[18];
-  return{arr,runway:runout!==null?runout:(fc>0?18:0),finalCash:fc};
+  return{arr,runway:runout!==null?runout:(cash>0?horizon:0),finalCash:arr[horizon]};
 }
 
-function runSc(id){
+function runSc(id, horizon){
   const sc=S.sc[id];
-  return simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,fundAmt:S.fundAmt,fundMo:S.fundMo,events:S.events,useRevenue:sc.useRevenue,useEvents:sc.useEvents,useFunding:sc.useFunding});
+  const expG = sc.useRevenue ? sc.expGrowth : 0; // S1 burns flat — no expense compounding
+  return simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:expG,fundAmt:S.fundAmt,fundMo:S.fundMo,events:S.events,useRevenue:sc.useRevenue,useEvents:sc.useEvents,useFunding:sc.useFunding}, horizon);
 }
 
-// Churn savings: how much extra revenue retained over `n` months if churn reduced by `delta`%
-// Split into existing-base vs net-new contribution
+// For actual end date when runway >= horizon, simulate further
+function trueRunway(id){
+  const sc=S.sc[id];
+  const quick=runSc(id, HORIZON);
+  if(quick.runway < HORIZON) return quick.runway;
+  // simulate out to 60mo to find real end
+  const extended=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,fundAmt:S.fundAmt,fundMo:S.fundMo,events:S.events,useRevenue:sc.useRevenue,useEvents:sc.useEvents,useFunding:sc.useFunding}, 60);
+  return extended.runway; // 60 if truly never runs out
+}
+
+// ── CHURN SAVINGS ─────────────────────────────────────────────────────────
 function churnSavings(baseChurn, growth, delta, n=12){
-  const newChurn=Math.max(0,baseChurn-delta);
+  const nc=Math.max(0,baseChurn-delta);
   let mB=S.mrr,mN=S.mrr,exB=S.mrr,exN=S.mrr;
   let cB=0,cN=0,cExB=0,cExN=0;
   for(let m=1;m<=n;m++){
-    cB+=mB; cN+=mN; cExB+=exB; cExN+=exN;
+    cB+=mB;cN+=mN;cExB+=exB;cExN+=exN;
     mB=Math.max(mB+mB*(growth/100)-mB*(baseChurn/100),0);
-    mN=Math.max(mN+mN*(growth/100)-mN*(newChurn/100),0);
+    mN=Math.max(mN+mN*(growth/100)-mN*(nc/100),0);
     exB=Math.max(exB*(1-baseChurn/100),0);
-    exN=Math.max(exN*(1-newChurn/100),0);
+    exN=Math.max(exN*(1-nc/100),0);
   }
-  return{total:cN-cB, existing:cExN-cExB, netNew:(cN-cB)-(cExN-cExB)};
+  return{total:cN-cB,existing:cExN-cExB,netNew:(cN-cB)-(cExN-cExB)};
 }
 
+// ── FUNDING IMPACT ────────────────────────────────────────────────────────
 function fundImpact(){
   if(!S.fundAmt||S.fundAmt<=0)return null;
-  const sc=S.sc.C4;
-  const withF=runSc('C4');
-  const noF=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events,useRevenue:true,useEvents:true,useFunding:false});
-  return{delta:withF.runway-noF.runway,newRunway:withF.runway};
+  const sc=S.sc.S3;
+  const rw=trueRunway('S3');
+  const noF=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events,useRevenue:true,useEvents:true,useFunding:false}, 60);
+  return{delta:rw-noF.runway, newRunway:rw};
 }
 
+// ── EXEC SUMMARY ──────────────────────────────────────────────────────────
 function buildExec(){
-  const c3=runSc('C3'),c1=runSc('C1');
-  const sc3=S.sc.C3;
-  const c3End=c3.runway>=18?"Aug '27+":moLbl(Math.round(c3.runway)+1);
-  const c1End=c1.runway>=18?'18+ mo':fRw(c1.runway);
-  const gap=Math.max((c3.runway>=18?18:c3.runway)-(c1.runway>=18?18:c1.runway),0);
-
+  const s1rw=trueRunway('S1'), s2rw=trueRunway('S2'), s3rw=trueRunway('S3');
+  const sc2=S.sc.S2, sc3=S.sc.S3;
+  const s2End=moLbl(Math.round(s2rw)+1);
+  const gap=Math.max(s2rw-s1rw,0);
+  const gapDays=Math.round(gap*30.4375);
   const lines=[];
 
-  // Line 1: state of play
-  lines.push(`At current gross burn of <span class="nr">${f$(S.burn)}/mo</span> and MRR of <span class="ng">${f$(S.mrr)}</span>, the realistic plan (C3) gives us <span class="nb">${fRwFull(c3.runway)}</span> of runway, ending <span class="nb">${c3End}</span>.`);
+  // ── Bullet 1: State of play
+  lines.push(`• At current gross burn of <span class="nr">${f$(S.burn)}/mo</span> and MRR of <span class="ng">${f$(S.mrr)}</span>, the realistic plan (S2) gives us <span class="nb">${fRwFull(s2rw)}</span> of runway, ending <span class="nb">${s2End}</span>.`
+    + (gapDays>15 ? ` Burn-only floor (S1) runs out <span class="nr">${Math.round(gap*10)/10} months earlier</span>.` : ''));
 
-  // Line 2: floor vs plan gap
-  lines.push(`The burn-only floor (C1) exhausts cash after <span class="nr">${c1End}</span>. The <span class="nb">${gap.toFixed(1)}-month</span> gap to C3 is entirely driven by revenue contribution.`);
+  // ── Bullet 2: S2 vs S3 — ARR growth impact
+  const growthDelta = sc3.growth - sc2.growth;
+  const churnDelta  = sc2.churn  - sc3.churn;
+  const s3rw_noFund = (() => {
+    const sc=sc3;
+    return simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events,useRevenue:true,useEvents:true,useFunding:false},60).runway;
+  })();
+  const totalRwDelta = s3rw_noFund - s2rw;
+  const totalDays    = Math.round(totalRwDelta*30.4375);
 
-  // Churn 1% insight
-  if(sc3.churn>1){
-    const sv1=churnSavings(sc3.churn,sc3.growth,1,12);
-    const mod1=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc3.growth,churn:Math.max(0,sc3.churn-1),expGrowth:sc3.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events,useRevenue:true,useEvents:true,useFunding:false});
-    const days1=Math.round((mod1.runway-c3.runway)*30.4375);
-    lines.push(`Reducing monthly churn by 1% (from <span class="nr">${fPct(sc3.churn)}</span> → <span class="ng">${fPct(Math.max(0,sc3.churn-1))}</span>) extends C3 runway by ~<span class="ng">${days1} days</span> and retains an estimated <span class="ng">${fs$(sv1.total)}</span> in revenue over 12 months — <span class="ng">${fs$(sv1.existing)}</span> from the current MRR base and <span class="ng">${fs$(sv1.netNew)}</span> from net-new MRR that would otherwise churn.`);
+  // Isolate ARR growth impact: run S3 growth + S2 churn
+  const rwGrowthOnly = simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc3.growth,churn:sc2.churn,expGrowth:sc2.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events,useRevenue:true,useEvents:true,useFunding:false},60).runway;
+  const growthDays   = Math.round((rwGrowthOnly-s2rw)*30.4375);
+  // ARR revenue delta over 12mo
+  const arrRevDelta  = (() => {
+    let mB=S.mrr,mN=S.mrr,cB=0,cN=0;
+    for(let m=1;m<=12;m++){
+      cB+=mB; cN+=mN;
+      mB=Math.max(mB+mB*(sc2.growth/100)-mB*(sc2.churn/100),0);
+      mN=Math.max(mN+mN*(sc3.growth/100)-mN*(sc2.churn/100),0);
+    }
+    return cN-cB;
+  })();
+
+  if(growthDelta!==0||churnDelta!==0){
+    let b2 = `• S2 → S3 adds <span class="ng">${fRwFull(Math.abs(totalRwDelta))}</span> of additional runway`;
+    if(totalDays<0) b2 = `• S3 vs S2: <span class="nr">${fRwFull(Math.abs(totalRwDelta))}</span> less runway`;
+    lines.push(b2);
+
+    // Sub-point: ARR growth difference
+    if(growthDelta!==0){
+      const sign=growthDelta>0;
+      lines.push(`&nbsp;&nbsp;&nbsp;↳ ARR growth <span class="${sign?'ng':'nr'}">${sign?'+':''}${fPct(growthDelta)}/mo</span> higher in S3 (${fPct(sc2.growth)} → ${fPct(sc3.growth)}) — contributes <span class="${sign?'ng':'nr'}">${sign?'+':''}${growthDays>0?growthDays:Math.abs(growthDays)} days</span> of runway and an estimated <span class="${sign?'ng':'nr'}">${sign?'+':'−'}${fs$(Math.abs(arrRevDelta))}</span> in additional revenue over 12 months.`);
+    }
+
+    // Sub-point: churn difference
+    if(churnDelta!==0){
+      const churnDays = Math.round((totalRwDelta - (rwGrowthOnly-s2rw))*30.4375);
+      const sv = churnSavings(sc2.churn, sc2.growth, churnDelta, 12);
+      const sign=churnDelta>0;
+      lines.push(`&nbsp;&nbsp;&nbsp;↳ Churn <span class="${sign?'ng':'nr'}">${sign?'−':'+'}${fPct(Math.abs(churnDelta))}/mo</span> lower in S3 (${fPct(sc2.churn)} → ${fPct(sc3.churn)}) — adds <span class="${sign?'ng':'nr'}">${sign?'+':'−'}${Math.abs(churnDays)} days</span> of runway and retains ~<span class="${sign?'ng':'nr'}">${fs$(Math.abs(sv.total))}</span> in revenue (<span class="${sign?'ng':'nr'}">${fs$(Math.abs(sv.existing))}</span> from existing base, <span class="${sign?'ng':'nr'}">${fs$(Math.abs(sv.netNew))}</span> from net-new MRR).`);
+    }
   }
 
-  // Churn 3% insight
-  if(sc3.churn>3){
-    const sv3=churnSavings(sc3.churn,sc3.growth,3,12);
-    lines.push(`If churn is reduced by 3%/mo (from <span class="nr">${fPct(sc3.churn)}</span> → <span class="np">${fPct(Math.max(0,sc3.churn-3))}</span>), the retained revenue impact over 12 months is approximately <span class="np">${fs$(sv3.total)}</span> — <span class="np">${fs$(sv3.existing)}</span> from the existing base and <span class="np">${fs$(sv3.netNew)}</span> from net-new MRR compounding in at the lower churn rate.`);
-  }
-
-  // One-time events
+  // ── Bullet 3: One-time events
   if(S.events.length>0){
-    const evExp=S.events.filter(e=>e.type==='expense').reduce((a,e)=>a+e.amount,0);
-    const evInc=S.events.filter(e=>e.type==='income').reduce((a,e)=>a+e.amount,0);
-    const c3NoEv=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc3.growth,churn:sc3.churn,expGrowth:sc3.expGrowth,fundAmt:0,fundMo:S.fundMo,events:[],useRevenue:true,useEvents:false,useFunding:false});
-    const evCost=c3NoEv.runway-c3.runway;
-    lines.push(`One-time events total <span class="nr">${fs$(evExp)}</span> in expenses and <span class="ng">${fs$(evInc)}</span> in income — ${evCost>0?'costing ~<span class="nr">'+fDelta(-evCost)+'</span>':'adding ~<span class="ng">'+fDelta(evCost)+'</span>'} on the C3 plan.`);
+    const evExp = S.events.filter(e=>e.type==='expense').reduce((a,e)=>{
+      const span=(e.monthEnd&&e.monthEnd>e.month)?(e.monthEnd-e.month+1):1;
+      return a+e.amount*span;
+    },0);
+    const noEv=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc2.growth,churn:sc2.churn,expGrowth:sc2.expGrowth,fundAmt:0,fundMo:S.fundMo,events:[],useRevenue:true,useEvents:false,useFunding:false},60);
+    const evCostDays=Math.round((noEv.runway-s2rw)*30.4375);
+
+    // Per-event short labels with individual day costs
+    const perEvParts = S.events.map(e=>{
+      const span=(e.monthEnd&&e.monthEnd>e.month)?(e.monthEnd-e.month+1):1;
+      const withoutRw=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc2.growth,churn:sc2.churn,expGrowth:sc2.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events.filter(x=>x.id!==e.id),useRevenue:true,useEvents:true,useFunding:false},60);
+      const eDays=Math.round((withoutRw.runway-s2rw)*30.4375);
+      return `${e.label} −${eDays}d`;
+    }).join(', ');
+
+    if(evExp>0){
+      lines.push(`• One-time events total <span class="nr">${fs$(evExp)}</span> in planned expenses — costing <span class="nr">~${evCostDays} days</span> of runway (${perEvParts}).`);
+    }
   }
 
-  // Funding
+  // ── Bullet 4: Funding
   const fi=fundImpact();
   if(fi){
-    const ne=fi.newRunway>=18?"Aug '27+":moLbl(Math.round(fi.newRunway)+1);
-    lines.push(`A funding round of <span class="ng">${f$(S.fundAmt)}</span> closing in ${moLbl(S.fundMo)} extends C4 runway by <span class="ng">${fDelta(fi.delta)}</span>, pushing the C4 end date to <span class="nb">${ne}</span>.`);
+    const neEnd=moLbl(Math.round(fi.newRunway)+1);
+    lines.push(`• A funding round of <span class="ng">${f$(S.fundAmt)}</span> in ${moLbl(S.fundMo)} extends S3 by <span class="ng">${fDelta(fi.delta)}</span> — new end date <span class="nb">${neEnd}</span>.`);
   }
 
-  return lines.map(l=>`<p>${l}</p>`).join('');
+  return lines.map(l=>`<p style="margin-bottom:7px">${l}</p>`).join('');
 }
 
+// ── KPIs ──────────────────────────────────────────────────────────────────
 function updateKPIs(){
-  const c3=runSc('C3'),sc3=S.sc.C3;
+  const s2rw=trueRunway('S2'), sc2=S.sc.S2;
   const nb=S.burn-S.mrr;
-  const end=c3.runway>=18?"Aug '27+":moLbl(Math.round(c3.runway)+1);
+  const end=moLbl(Math.round(s2rw)+1);
   document.getElementById('kpi-cash').textContent=f$(S.cash);
-  document.getElementById('kpi-rw').textContent=fRw(c3.runway);
+  document.getElementById('kpi-rw').textContent=fRwRounded(s2rw);
   document.getElementById('kpi-rw-sub').textContent='ends '+end;
   const nbEl=document.getElementById('kpi-nb');
-  nbEl.textContent=f$(nb); nbEl.className='kc-val '+(nb>0?'col-r':'col-g');
+  nbEl.textContent=f$(nb);nbEl.className='kc-val '+(nb>0?'col-r':'col-g');
   document.getElementById('kpi-mrr').textContent=f$(S.mrr);
   document.getElementById('kpi-arr').textContent='ARR ≈ '+f$(S.mrr*12);
-  document.getElementById('kpi-ch').textContent=fPct(sc3.churn)+'/mo';
-  document.getElementById('kpi-ach').textContent='ann. ≈ '+fAnn(sc3.churn);
+  document.getElementById('kpi-ch').textContent=fPct(sc2.churn)+'/mo';
+  document.getElementById('kpi-ach').textContent='ann. ≈ '+fAnn(sc2.churn);
 }
 
-function renderEvents(){
-  document.getElementById('ev-list').innerHTML=S.events.map(e=>`
-    <div class="ev-row">
-      <span class="ev-mo">M${e.month}</span>
-      <span class="ev-lbl" title="${e.label}">${e.label}</span>
-      <span class="ev-amt ${e.type==='expense'?'ev-exp':'ev-inc'}">${e.type==='expense'?'-':'+'}${fs$(e.amount)}</span>
-      <button class="ev-del" onclick="delEv(${e.id})">×</button>
-    </div>`).join('');
+// ── EVENTS ────────────────────────────────────────────────────────────────
+function eventImpactDays(ev){
+  // Compare S2 runway with vs without this single event
+  const sc=S.sc.S2;
+  const baseline=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events,useRevenue:true,useEvents:true,useFunding:false},60);
+  const without=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events.filter(e=>e.id!==ev.id),useRevenue:true,useEvents:true,useFunding:false},60);
+  const delta=without.runway-baseline.runway; // positive = event costs runway
+  return Math.round(delta*30.4375);
+}
+
+function eventsHTML(showControls){
+  if(!showControls) return '<div class="ev-off">—</div>';
+  let html=S.events.map(e=>{
+    const end=e.monthEnd&&e.monthEnd>e.month?e.monthEnd:null;
+    const moTxt=end?`M${e.month}–M${end}`:`M${e.month}`;
+    const totalAmt=end?(e.amount*(end-e.month+1)):e.amount;
+    const impactDays=eventImpactDays(e);
+    const isExpense=e.type==='expense';
+    const impactTxt=isExpense
+      ? (impactDays>0?`−${impactDays}d runway`:`no runway impact`)
+      : (impactDays<0?`+${Math.abs(impactDays)}d runway`:`no runway impact`);
+    const impactCls=isExpense&&impactDays>0?'neg':((!isExpense&&impactDays<0)?'pos':'');
+    return`<div style="display:flex;flex-direction:column;gap:0">
+      <div class="ev-tag">
+        <span class="ev-tag-mo">${moTxt}</span>
+        <span class="ev-tag-lbl" title="${e.label}">${e.label}</span>
+        <span class="ev-tag-amt ${isExpense?'ev-exp':'ev-inc'}">${isExpense?'-':'+'}${fs$(totalAmt)}</span>
+        <button class="ev-del" onclick="delEv(${e.id})">×</button>
+      </div>
+      <div class="ev-impact ${impactCls}">${impactTxt}</div>
+    </div>`;
+  }).join('');
+  html+=`<button class="add-ev-btn" onclick="openForm()">+ add event</button>`;
+  return html;
 }
 function delEv(id){S.events=S.events.filter(e=>e.id!==id);refresh();}
-function openForm(){document.getElementById('add-form').classList.add('open');}
-function closeForm(){document.getElementById('add-form').classList.remove('open');['ef-name','ef-amt','ef-mo'].forEach(i=>document.getElementById(i).value='');}
+function openForm(){document.getElementById('ev-form-wrap').classList.add('open');}
 function saveEvent(){
   const name=document.getElementById('ef-name').value.trim();
   const type=document.getElementById('ef-type').value;
   const amt=parseFloat(document.getElementById('ef-amt').value);
   const mo=parseInt(document.getElementById('ef-mo').value);
-  if(!name||isNaN(amt)||isNaN(mo)||mo<1||mo>18)return;
-  S.events.push({id:nextId++,label:name,type,amount:amt,month:mo});
+  const moEndRaw=document.getElementById('ef-mo-end').value;
+  const moEnd=moEndRaw?parseInt(moEndRaw):mo;
+  if(!name||isNaN(amt)||isNaN(mo)||mo<1||mo>22)return;
+  S.events.push({id:nextId++,label:name,type,amount:amt,month:mo,monthEnd:moEnd>mo?moEnd:mo});
   closeForm();refresh();
 }
+function closeForm(){
+  document.getElementById('ev-form-wrap').classList.remove('open');
+  ['ef-name','ef-amt','ef-mo','ef-mo-end'].forEach(i=>document.getElementById(i).value='');
+}
 
+// ── SCENARIO ROWS ─────────────────────────────────────────────────────────
 const SC_META={
-  C1:{name:'C1 Conservative',desc:'Burn only. No revenue. Absolute floor.',isPlan:false,pill:'p-r',rc:'col-r'},
-  C3:{name:'C3 Realistic',desc:'Plan case.',isPlan:true,pill:'p-b',rc:'col-b'},
-  C4:{name:'C4 Optimistic',desc:'Funding applied if entered.',isPlan:false,pill:'p-g',rc:'col-g'},
+  S1:{name:'S1 Conservative',desc:'Burn only. No revenue. Absolute floor.',isPlan:false,pill:'p-r',rc:'col-r'},
+  S2:{name:'S2 Realistic',   desc:'Plan case.',isPlan:true, pill:'p-b',rc:'col-b'},
+  S3:{name:'S3 Optimistic',  desc:'Funding applied if entered.',isPlan:false,pill:'p-g',rc:'col-g'},
 };
 
+function fRwExact(rw){
+  // exact days sub-label, e.g. "(13 mo 9d exact)"
+  const m=Math.floor(rw), d=Math.round((rw-m)*30.4375);
+  if(d===0) return '';
+  return m+' mo '+d+'d exact';
+}
+function fRwRounded(rw){
+  const m=Math.floor(rw), d=Math.round((rw-m)*30.4375);
+  if(d===0) return m+' mo';
+  if(d<15) return '~'+m+' mo';
+  return '~'+(m+1)+' mo';
+}
+
 function renderScRows(){
-  const html=['C1','C3','C4'].map(id=>{
-    const m=SC_META[id],sc=S.sc[id],res=runSc(id);
-    const rw=res.runway,plus=rw>=18;
-    const moTxt=plus?'18+ mo':Math.floor(rw)+' mo';
-    const daysTxt=(()=>{const d=Math.round((rw-Math.floor(rw))*30.4375);return(!plus&&d>0)?'+'+d+'d':''})();
-    const dateTxt=plus?"Aug '27+":moLbl(Math.round(rw)+1);
-    const fc=res.finalCash;
-    const fcCls=fc>200000?'col-g':(fc>0?'':'col-r');
+  const html=['S1','S2','S3'].map(id=>{
+    const m=SC_META[id],sc=S.sc[id];
+    const rw=trueRunway(id);
+    const moTxt=fRwRounded(rw);
+    const dateTxt=moLbl(Math.round(rw)+1);
     const noRev=!sc.useRevenue;
+    const isS1=id==='S1';
 
     return`<div class="srow${m.isPlan?' plan':''}">
       <div>
@@ -407,7 +528,7 @@ function renderScRows(){
       </div>
       <div>
         <div class="rw-mo ${m.rc}">${moTxt}</div>
-        ${daysTxt?`<div class="rw-days">${daysTxt}</div>`:''}
+        ${fRwExact(rw)?`<div class="rw-days">${fRwExact(rw)}</div>`:''}
         <div class="rw-pill ${m.pill}">${dateTxt}</div>
       </div>
       <div class="sc-inp-wrap">
@@ -419,10 +540,10 @@ function renderScRows(){
         ${!noRev?`<div class="sc-inp-lbl">ann≈${fAnn(sc.churn)}</div>`:''}
       </div>
       <div class="sc-inp-wrap">
-        <input class="sc-inp" type="number" step="0.1" value="${sc.expGrowth}" oninput="setSc('${id}','expGrowth',this.value)">
+        <input class="sc-inp" type="number" step="0.1" value="${sc.expGrowth}" ${isS1?'disabled':''} oninput="setSc('${id}','expGrowth',this.value)">
+        ${isS1?'<div class="sc-inp-lbl">n/a</div>':''}
       </div>
-      <div class="ev-cell">${sc.useEvents?(S.events.length>0?S.events.length+'ev':'—'):'Off'}</div>
-      <div class="cash18 ${fcCls}">${plus?fs$(fc):(fc>0?fs$(fc):'$0')}</div>
+      <div class="ev-col">${eventsHTML(sc.useEvents)}</div>
     </div>`;
   }).join('');
   document.getElementById('srows').innerHTML=html;
@@ -435,25 +556,27 @@ function setSc(id,key,val){
   refresh();
 }
 
+// ── FUNDING LABEL ─────────────────────────────────────────────────────────
 function updateFundLbl(){
   const el=document.getElementById('fund-impact');
   const fi=fundImpact();
   if(!fi){el.style.display='none';return;}
-  const ne=fi.newRunway>=18?"Aug '27+":moLbl(Math.round(fi.newRunway)+1);
+  const ne=moLbl(Math.round(fi.newRunway)+1);
   el.style.display='block';
-  el.textContent=`${fDelta(fi.delta)} additional runway (C4) · new end: ${ne}`;
+  el.textContent=`${fDelta(fi.delta)} additional runway (S3) · new end: ${ne}`;
 }
 
+// ── CHART ─────────────────────────────────────────────────────────────────
 let chart=null;
 function initChart(){
   const ctx=document.getElementById('chart').getContext('2d');
-  const labels=Array.from({length:19},(_,i)=>i===0?"Mar '26":moLbl(i+1));
+  const labels=Array.from({length:HORIZON+1},(_,i)=>i===0?"Mar '26":moLbl(i+1));
   chart=new Chart(ctx,{
     type:'line',
     data:{labels,datasets:[
-      {label:'C1',data:[],borderColor:'#ef4444',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:0.2},
-      {label:'C3',data:[],borderColor:'#3b82f6',backgroundColor:'transparent',borderWidth:2,pointRadius:0,tension:0.2},
-      {label:'C4',data:[],borderColor:'#22c55e',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:0.2},
+      {label:'S1',data:[],borderColor:'#ef4444',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:0.2},
+      {label:'S2',data:[],borderColor:'#3b82f6',backgroundColor:'transparent',borderWidth:2,  pointRadius:0,tension:0.2},
+      {label:'S3',data:[],borderColor:'#22c55e',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:0.2},
     ]},
     options:{
       responsive:true,interaction:{mode:'index',intersect:false},
@@ -462,7 +585,7 @@ function initChart(){
         tooltip:{backgroundColor:'#1e2535',borderColor:'rgba(255,255,255,0.07)',borderWidth:.5,titleColor:'#9ca3af',bodyColor:'#e8eaf0',titleFont:{family:"'IBM Plex Mono',monospace",size:10},bodyFont:{family:"'IBM Plex Mono',monospace",size:11},callbacks:{label:c=>` ${c.dataset.label}: ${fs$(c.parsed.y)}`}}
       },
       scales:{
-        x:{grid:{color:'rgba(255,255,255,0.04)',drawTicks:false},ticks:{color:'#6b7280',font:{family:"'IBM Plex Mono',monospace",size:9},maxRotation:45,autoSkip:true,maxTicksLimit:10},border:{color:'rgba(255,255,255,0.07)'}},
+        x:{grid:{color:'rgba(255,255,255,0.04)',drawTicks:false},ticks:{color:'#6b7280',font:{family:"'IBM Plex Mono',monospace",size:9},maxRotation:45,autoSkip:true,maxTicksLimit:12},border:{color:'rgba(255,255,255,0.07)'}},
         y:{grid:{color:'rgba(255,255,255,0.04)',drawTicks:false},ticks:{color:'#6b7280',font:{family:"'IBM Plex Mono',monospace",size:9},callback:v=>fs$(v)},border:{color:'rgba(255,255,255,0.07)'}}
       }
     }
@@ -470,14 +593,14 @@ function initChart(){
 }
 function updateChart(){
   if(!chart)return;
-  ['C1','C3','C4'].forEach((id,i)=>{chart.data.datasets[i].data=runSc(id).arr;});
+  ['S1','S2','S3'].forEach((id,i)=>{chart.data.datasets[i].data=runSc(id,HORIZON).arr;});
   chart.update('none');
 }
 
+// ── REFRESH ───────────────────────────────────────────────────────────────
 function refresh(){
   updateKPIs();
   updateFundLbl();
-  renderEvents();
   renderScRows();
   document.getElementById('exec-body').innerHTML=buildExec();
   updateChart();
@@ -485,19 +608,14 @@ function refresh(){
 
 function numIn(id,key){
   document.getElementById(id).addEventListener('input',function(){
-    const v=parseFloat(this.value);
-    if(!isNaN(v)){S[key]=v;refresh();}
+    const v=parseFloat(this.value);if(!isNaN(v)){S[key]=v;refresh();}
   });
 }
 
 function init(){
-  numIn('in-cash','cash');
-  numIn('in-mrr','mrr');
-  numIn('in-burn','burn');
-  numIn('in-fund-mo','fundMo');
+  numIn('in-cash','cash');numIn('in-mrr','mrr');numIn('in-burn','burn');numIn('in-fund-mo','fundMo');
   document.getElementById('in-fund-amt').addEventListener('input',function(){S.fundAmt=parseFloat(this.value)||0;refresh();});
-  initChart();
-  refresh();
+  initChart();refresh();
 }
 
 document.addEventListener('DOMContentLoaded',init);
