@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Runway Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:     #0d1117;--bg2:#161b27;--bg3:#1c2333;--bg4:#222a3a;
+  --border: rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.04);
+  --text:   #dde2ed;--muted:#6b7280;--dim:#9ca3af;
+  --red:#ef4444;--rs:#fca5a5;
+  --grn:#22c55e;--gs:#86efac;
+  --blu:#3b82f6;--bs:#93c5fd;
+  --amb:#f59e0b;--as:#fcd34d;
+  --pur:#a78bfa;
+  --plan-bg:rgba(59,130,246,0.055);
+  --shadow:0 1px 4px rgba(0,0,0,0.5);
+  --mono:'IBM Plex Mono','Courier New',monospace;
+  --sans:'IBM Plex Sans',-apple-system,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13px;line-height:1.5;padding:22px 14px 60px}
+.wrap{max-width:1060px;margin:0 auto}
+
+.ph{display:flex;align-items:baseline;gap:10px;margin-bottom:18px;padding-bottom:12px;border-bottom:.5px solid var(--border)}
+.ph-ttl{font-family:var(--mono);font-size:14px;font-weight:600;letter-spacing:.05em}
+.ph-sub{color:var(--muted);font-size:11px}
+.live{margin-left:auto;font-size:10px;font-family:var(--mono);background:rgba(34,197,94,.1);color:var(--grn);border:.5px solid rgba(34,197,94,.25);padding:2px 8px;border-radius:10px;letter-spacing:.08em}
+.live::before{content:'● '}
+
+.exec{background:var(--bg2);border:.5px solid var(--border);border-left:3px solid var(--blu);border-radius:6px;padding:16px 20px;margin-bottom:14px;box-shadow:var(--shadow)}
+.exec-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--blu);text-transform:uppercase;margin-bottom:10px;opacity:.8}
+.exec-body{font-size:13px;line-height:1.95;color:#c4cedf;font-family:var(--sans)}
+.exec-body p{margin-bottom:5px}.exec-body p:last-child{margin-bottom:0}
+.nr{color:var(--rs);font-family:var(--mono);font-weight:500}
+.ng{color:var(--gs);font-family:var(--mono);font-weight:500}
+.nb{color:var(--bs);font-family:var(--mono);font-weight:500}
+.na{color:var(--as);font-family:var(--mono);font-weight:500}
+.np{color:var(--pur);font-family:var(--mono);font-weight:500}
+
+.kpi-strip{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.kc{flex:1;min-width:130px;background:var(--bg2);border:.5px solid var(--border);border-radius:5px;padding:11px 13px;box-shadow:var(--shadow)}
+.kc-lbl{font-size:9px;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;margin-bottom:4px;font-family:var(--mono)}
+.kc-val{font-family:var(--mono);font-size:17px;font-weight:600;line-height:1.1}
+.kc-sub{font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:2px}
+
+.layout{display:grid;grid-template-columns:252px 1fr;gap:12px;align-items:start}
+
+.lp{background:var(--bg2);border:.5px solid var(--border);border-radius:6px;padding:15px;box-shadow:var(--shadow);position:sticky;top:16px}
+.sec{font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:11px;padding-bottom:7px;border-bottom:.5px solid var(--border)}
+.ig{margin-bottom:10px}
+.ig-lbl{font-size:10px;color:var(--dim);margin-bottom:4px;display:flex;justify-content:space-between}
+.ig-lbl em{font-size:9px;color:var(--muted);font-style:normal}
+.fi{width:100%;padding:5px 8px;background:var(--bg3);border:.5px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:12px;outline:none;transition:border-color .15s}
+.fi:focus{border-color:var(--blu)}
+.hr{border:none;border-top:.5px solid var(--border);margin:11px 0}
+.fund-impact{font-size:10px;color:var(--gs);font-family:var(--mono);line-height:1.5;margin-top:5px;padding:6px 8px;background:rgba(34,197,94,.05);border:.5px solid rgba(34,197,94,.15);border-radius:4px;display:none}
+
+.ev-list{display:flex;flex-direction:column;gap:4px;margin-bottom:7px}
+.ev-row{display:flex;gap:4px;align-items:center;padding:5px 7px;background:var(--bg3);border:.5px solid var(--border);border-radius:4px}
+.ev-mo{font-family:var(--mono);font-size:10px;color:var(--bs);min-width:22px}
+.ev-lbl{flex:1;font-size:10px;color:var(--dim);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.ev-amt{font-family:var(--mono);font-size:10px;min-width:48px;text-align:right}
+.ev-exp{color:var(--rs)}.ev-inc{color:var(--gs)}
+.ev-del{width:16px;height:16px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;border-radius:3px}
+.ev-del:hover{color:var(--red);background:rgba(239,68,68,.1)}
+.add-btn{font-size:10px;font-family:var(--mono);color:var(--blu);background:none;border:.5px dashed rgba(59,130,246,.4);border-radius:4px;cursor:pointer;padding:5px;width:100%;letter-spacing:.04em}
+.add-btn:hover{background:rgba(59,130,246,.06)}
+.add-form{background:var(--bg3);border:.5px solid rgba(59,130,246,.25);border-radius:4px;padding:9px;margin-top:6px;display:none;flex-direction:column;gap:5px}
+.add-form.open{display:flex}
+.add-form input,.add-form select{background:var(--bg);border:.5px solid var(--border);color:var(--text);border-radius:3px;padding:4px 6px;font-family:var(--mono);font-size:11px;outline:none;width:100%}
+.add-form input:focus,.add-form select:focus{border-color:var(--blu)}
+.af-row{display:flex;gap:4px}.af-row>*{flex:1}
+.af-btns{display:flex;gap:4px}
+.btn-ok,.btn-no{flex:1;padding:4px;border-radius:3px;font-size:10px;font-family:var(--mono);cursor:pointer;border:none;letter-spacing:.04em}
+.btn-ok{background:var(--blu);color:#fff}.btn-ok:hover{background:#2563eb}
+.btn-no{background:var(--bg3);color:var(--muted);border:.5px solid var(--border)}.btn-no:hover{color:var(--text)}
+
+.rcol{display:flex;flex-direction:column;gap:12px}
+
+/* Scenario table */
+.stbl{background:var(--bg2);border:.5px solid var(--border);border-radius:6px;overflow:hidden;box-shadow:var(--shadow)}
+.stbl-hd{display:grid;grid-template-columns:150px 108px 1fr 1fr 1fr 60px 90px;padding:8px 12px;background:var(--bg3);border-bottom:.5px solid var(--border);gap:6px}
+.th{font-family:var(--mono);font-size:9px;letter-spacing:.09em;color:var(--muted);text-transform:uppercase;display:flex;align-items:center;gap:3px}
+.th-tag{font-size:8px;color:var(--rs)}
+.th-tag-b{font-size:8px;color:var(--bs)}
+
+.srow{display:grid;grid-template-columns:150px 108px 1fr 1fr 1fr 60px 90px;padding:11px 12px;border-bottom:.5px solid var(--border2);gap:6px;align-items:center}
+.srow:last-child{border-bottom:none}
+.srow.plan{background:var(--plan-bg);border-left:2px solid var(--blu)}
+.srow:hover{background:rgba(255,255,255,.015)}
+.srow.plan:hover{background:rgba(59,130,246,.07)}
+
+.sn-name{font-family:var(--mono);font-size:12px;font-weight:600}
+.sn-desc{font-size:10px;color:var(--muted);margin-top:2px;line-height:1.3}
+.plan-badge{display:inline-block;font-size:8px;font-family:var(--mono);color:var(--blu);background:rgba(59,130,246,.15);border:.5px solid rgba(59,130,246,.3);padding:1px 5px;border-radius:8px;letter-spacing:.07em;margin-left:5px;vertical-align:middle}
+
+.rw-mo{font-family:var(--mono);font-size:14px;font-weight:600}
+.rw-days{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:1px}
+.rw-pill{display:inline-block;font-size:9px;font-family:var(--mono);padding:1px 7px;border-radius:8px;margin-top:3px}
+.p-r{background:rgba(239,68,68,.1);color:var(--rs);border:.5px solid rgba(239,68,68,.2)}
+.p-a{background:rgba(245,158,11,.1);color:var(--as);border:.5px solid rgba(245,158,11,.2)}
+.p-b{background:rgba(59,130,246,.1);color:var(--bs);border:.5px solid rgba(59,130,246,.2)}
+.p-g{background:rgba(34,197,94,.1);color:var(--gs);border:.5px solid rgba(34,197,94,.2)}
+
+/* Per-scenario inline inputs */
+.sc-inp-wrap{display:flex;flex-direction:column;gap:1px}
+.sc-inp{width:100%;padding:5px 7px;background:var(--bg4);border:.5px solid var(--border);border-radius:3px;color:var(--text);font-family:var(--mono);font-size:11px;text-align:right;outline:none;transition:border-color .15s}
+.sc-inp:focus{border-color:var(--blu)}
+.sc-inp:disabled{opacity:.35;cursor:not-allowed;background:var(--bg3)}
+.sc-inp-lbl{font-size:9px;color:var(--muted);font-family:var(--mono);text-align:right;margin-top:1px}
+
+.ev-cell{font-size:10px;color:var(--muted);font-family:var(--mono)}
+.cash18{font-family:var(--mono);font-size:12px}
+.col-r{color:var(--rs)}.col-g{color:var(--gs)}.col-b{color:var(--bs)}.col-m{color:var(--muted)}
+
+/* Chart */
+.chart-card{background:var(--bg2);border:.5px solid var(--border);border-radius:6px;padding:15px;box-shadow:var(--shadow)}
+.c-leg{display:flex;gap:14px;margin-bottom:10px;flex-wrap:wrap}
+.c-li{display:flex;align-items:center;gap:6px;font-size:10px;font-family:var(--mono);color:var(--dim)}
+.c-line{width:22px;height:2px;border-radius:1px}
+.c-dash{background:none!important;border-top:2px dashed}
+canvas{display:block}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="ph">
+  <span class="ph-ttl">RUNWAY DASHBOARD</span>
+  <span class="ph-sub">18-month horizon · M1 = Mar '26</span>
+  <span class="live">LIVE</span>
+</div>
+
+<div class="exec">
+  <div class="exec-lbl">Executive Summary — CFO Briefing Note</div>
+  <div class="exec-body" id="exec-body">Loading…</div>
+</div>
+
+<div class="kpi-strip">
+  <div class="kc"><div class="kc-lbl">Starting Cash</div><div class="kc-val col-b" id="kpi-cash">—</div></div>
+  <div class="kc"><div class="kc-lbl">Realistic Runway (C3)</div><div class="kc-val col-b" id="kpi-rw">—</div><div class="kc-sub" id="kpi-rw-sub">—</div></div>
+  <div class="kc"><div class="kc-lbl">Net Monthly Burn</div><div class="kc-val" id="kpi-nb">—</div><div class="kc-sub">Gross Burn − MRR</div></div>
+  <div class="kc"><div class="kc-lbl">Current MRR</div><div class="kc-val col-g" id="kpi-mrr">—</div><div class="kc-sub" id="kpi-arr">—</div></div>
+  <div class="kc"><div class="kc-lbl">C3 Churn Rate</div><div class="kc-val col-r" id="kpi-ch">—</div><div class="kc-sub" id="kpi-ach">—</div></div>
+</div>
+
+<div class="layout">
+  <div class="lp">
+    <div class="sec">Baseline Inputs</div>
+    <div class="ig"><div class="ig-lbl">Starting Cash ($)</div><input class="fi" type="number" id="in-cash" value="4880000"></div>
+    <div class="ig"><div class="ig-lbl">Current MRR ($)</div><input class="fi" type="number" id="in-mrr" value="14250"></div>
+    <div class="ig"><div class="ig-lbl">Monthly Gross Burn ($)</div><input class="fi" type="number" id="in-burn" value="345000"></div>
+
+    <div class="hr"></div>
+    <div class="sec">Funding Event</div>
+    <div class="ig"><div class="ig-lbl">Amount ($) <em>blank = none</em></div><input class="fi" type="number" id="in-fund-amt" placeholder="e.g. 2000000"></div>
+    <div class="ig"><div class="ig-lbl">Closes in Month <em>1–18</em></div><input class="fi" type="number" id="in-fund-mo" value="6" min="1" max="18"></div>
+    <div class="fund-impact" id="fund-impact"></div>
+
+    <div class="hr"></div>
+    <div class="sec">One-Time Events</div>
+    <div class="ev-list" id="ev-list"></div>
+    <button class="add-btn" onclick="openForm()">+ Add Event</button>
+    <div class="add-form" id="add-form">
+      <input type="text" id="ef-name" placeholder="Label (e.g. Marketing Burst)">
+      <div class="af-row">
+        <select id="ef-type"><option value="expense">Expense</option><option value="income">Income</option></select>
+        <input type="number" id="ef-amt" placeholder="Amount $">
+        <input type="number" id="ef-mo" placeholder="Mo" min="1" max="18">
+      </div>
+      <div class="af-btns">
+        <button class="btn-no" onclick="closeForm()">Cancel</button>
+        <button class="btn-ok" onclick="saveEvent()">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="rcol">
+    <div class="stbl">
+      <div class="stbl-hd">
+        <div class="th">Scenario</div>
+        <div class="th">Runway</div>
+        <div class="th">ARR Growth <span class="th-tag-b">%/mo</span></div>
+        <div class="th">Churn <span class="th-tag">%/mo</span></div>
+        <div class="th">Exp Growth <span class="th-tag">%/mo</span></div>
+        <div class="th">Events</div>
+        <div class="th">Cash @ 18mo</div>
+      </div>
+      <div id="srows"></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="c-leg">
+        <div class="c-li"><div class="c-line" style="background:var(--red)"></div>C1 Conservative</div>
+        <div class="c-li"><div class="c-line" style="background:var(--blu)"></div>C3 Realistic <span style="color:var(--blu);margin-left:3px">▶ plan</span></div>
+        <div class="c-li"><div class="c-line" style="background:var(--grn)"></div>C4 Optimistic</div>
+      </div>
+      <canvas id="chart" height="220"></canvas>
+    </div>
+  </div>
+</div>
+
+<script>
+const S = {
+  cash:4880000, mrr:14250, burn:345000,
+  fundAmt:0, fundMo:6,
+  events:[
+    {id:1,label:'AI Burst',    type:'expense',amount:50000, month:2},
+    {id:2,label:'AI Burst',    type:'expense',amount:50000, month:3},
+    {id:3,label:'Marketing Burst',type:'expense',amount:75000,month:6},
+    {id:4,label:'Marketing Burst',type:'expense',amount:75000,month:7},
+  ],
+  sc:{
+    C1:{growth:0,  churn:0,  expGrowth:1,  useRevenue:false,useEvents:false,useFunding:false},
+    C3:{growth:10, churn:15, expGrowth:1,  useRevenue:true, useEvents:true, useFunding:false},
+    C4:{growth:15, churn:12, expGrowth:1,  useRevenue:true, useEvents:true, useFunding:true },
+  }
+};
+let nextId=5;
+
+const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function moLbl(m){const d=new Date(2026,2,1);d.setMonth(d.getMonth()+(m-1));return MO[d.getMonth()]+" '"+(d.getFullYear()%100).toString().padStart(2,'0');}
+
+function f$(n){const a=Math.abs(n),s=n<0?'-':'';if(a>=1e6)return s+'$'+(a/1e6).toFixed(2)+'M';if(a>=1e3)return s+'$'+(a/1e3).toFixed(0)+'K';return s+'$'+Math.round(a).toLocaleString();}
+function fs$(n){const a=Math.abs(n),s=n<0?'-':'';if(a>=1e6)return s+'$'+(a/1e6).toFixed(1)+'M';if(a>=1e3)return s+'$'+(a/1e3).toFixed(0)+'K';return s+'$'+Math.round(a).toLocaleString();}
+function fRw(mo){
+  if(mo===null||isNaN(mo))return'—';
+  if(mo>=18)return'18+ mo';
+  const m=Math.floor(mo),d=Math.round((mo-m)*30.4375);
+  return m+' mo'+(d?' '+d+'d':'');
+}
+function fRwFull(mo){
+  if(mo===null||isNaN(mo))return'—';
+  if(mo>=18)return'18+ mo';
+  const m=Math.floor(mo),d=Math.round((mo-m)*30.4375);
+  if(d===0)return m+' months';
+  return m+' months '+d+' days';
+}
+function fDelta(mo){
+  if(mo===null||isNaN(mo))return'—';
+  const days=Math.round(mo*30.4375),sign=mo>=0?'+':'';
+  if(Math.abs(mo)<1)return sign+'~'+Math.abs(days)+' days';
+  return sign+mo.toFixed(1)+' mo (~'+Math.abs(days)+' days)';
+}
+function fPct(v){return v.toFixed(1)+'%'}
+function fAnn(m){return((1-Math.pow(1-m/100,12))*100).toFixed(1)+'%'}
+
+function simulate(cfg){
+  const{startCash,startMrr,startBurn,growth,churn,expGrowth,fundAmt,fundMo,events,useRevenue,useEvents,useFunding}=cfg;
+  const arr=[startCash];
+  let cash=startCash,mrr=startMrr,runout=null;
+  for(let m=1;m<=18;m++){
+    const burn=startBurn*Math.pow(1+expGrowth/100,m-1);
+    let evD=0;
+    if(useEvents&&events)for(const e of events)if(e.month===m)evD+=(e.type==='income'?1:-1)*e.amount;
+    const fd=(useFunding&&fundAmt>0&&m===fundMo)?fundAmt:0;
+    const rev=useRevenue?mrr:0;
+    const prev=cash;
+    cash=cash-burn+rev+evD+fd;
+    arr.push(Math.max(cash,0));
+    if(runout===null&&cash<=0){const fr=prev/(prev-cash);runout=(m-1)+fr;}
+    if(useRevenue){mrr=Math.max(mrr+mrr*(growth/100)-mrr*(churn/100),0);}
+  }
+  const fc=arr[18];
+  return{arr,runway:runout!==null?runout:(fc>0?18:0),finalCash:fc};
+}
+
+function runSc(id){
+  const sc=S.sc[id];
+  return simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,fundAmt:S.fundAmt,fundMo:S.fundMo,events:S.events,useRevenue:sc.useRevenue,useEvents:sc.useEvents,useFunding:sc.useFunding});
+}
+
+// Churn savings: how much extra revenue retained over `n` months if churn reduced by `delta`%
+// Split into existing-base vs net-new contribution
+function churnSavings(baseChurn, growth, delta, n=12){
+  const newChurn=Math.max(0,baseChurn-delta);
+  let mB=S.mrr,mN=S.mrr,exB=S.mrr,exN=S.mrr;
+  let cB=0,cN=0,cExB=0,cExN=0;
+  for(let m=1;m<=n;m++){
+    cB+=mB; cN+=mN; cExB+=exB; cExN+=exN;
+    mB=Math.max(mB+mB*(growth/100)-mB*(baseChurn/100),0);
+    mN=Math.max(mN+mN*(growth/100)-mN*(newChurn/100),0);
+    exB=Math.max(exB*(1-baseChurn/100),0);
+    exN=Math.max(exN*(1-newChurn/100),0);
+  }
+  return{total:cN-cB, existing:cExN-cExB, netNew:(cN-cB)-(cExN-cExB)};
+}
+
+function fundImpact(){
+  if(!S.fundAmt||S.fundAmt<=0)return null;
+  const sc=S.sc.C4;
+  const withF=runSc('C4');
+  const noF=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events,useRevenue:true,useEvents:true,useFunding:false});
+  return{delta:withF.runway-noF.runway,newRunway:withF.runway};
+}
+
+function buildExec(){
+  const c3=runSc('C3'),c1=runSc('C1');
+  const sc3=S.sc.C3;
+  const c3End=c3.runway>=18?"Aug '27+":moLbl(Math.round(c3.runway)+1);
+  const c1End=c1.runway>=18?'18+ mo':fRw(c1.runway);
+  const gap=Math.max((c3.runway>=18?18:c3.runway)-(c1.runway>=18?18:c1.runway),0);
+
+  const lines=[];
+
+  // Line 1: state of play
+  lines.push(`At current gross burn of <span class="nr">${f$(S.burn)}/mo</span> and MRR of <span class="ng">${f$(S.mrr)}</span>, the realistic plan (C3) gives us <span class="nb">${fRwFull(c3.runway)}</span> of runway, ending <span class="nb">${c3End}</span>.`);
+
+  // Line 2: floor vs plan gap
+  lines.push(`The burn-only floor (C1) exhausts cash after <span class="nr">${c1End}</span>. The <span class="nb">${gap.toFixed(1)}-month</span> gap to C3 is entirely driven by revenue contribution.`);
+
+  // Churn 1% insight
+  if(sc3.churn>1){
+    const sv1=churnSavings(sc3.churn,sc3.growth,1,12);
+    const mod1=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc3.growth,churn:Math.max(0,sc3.churn-1),expGrowth:sc3.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events,useRevenue:true,useEvents:true,useFunding:false});
+    const days1=Math.round((mod1.runway-c3.runway)*30.4375);
+    lines.push(`Reducing monthly churn by 1% (from <span class="nr">${fPct(sc3.churn)}</span> → <span class="ng">${fPct(Math.max(0,sc3.churn-1))}</span>) extends C3 runway by ~<span class="ng">${days1} days</span> and retains an estimated <span class="ng">${fs$(sv1.total)}</span> in revenue over 12 months — <span class="ng">${fs$(sv1.existing)}</span> from the current MRR base and <span class="ng">${fs$(sv1.netNew)}</span> from net-new MRR that would otherwise churn.`);
+  }
+
+  // Churn 3% insight
+  if(sc3.churn>3){
+    const sv3=churnSavings(sc3.churn,sc3.growth,3,12);
+    lines.push(`If churn is reduced by 3%/mo (from <span class="nr">${fPct(sc3.churn)}</span> → <span class="np">${fPct(Math.max(0,sc3.churn-3))}</span>), the retained revenue impact over 12 months is approximately <span class="np">${fs$(sv3.total)}</span> — <span class="np">${fs$(sv3.existing)}</span> from the existing base and <span class="np">${fs$(sv3.netNew)}</span> from net-new MRR compounding in at the lower churn rate.`);
+  }
+
+  // One-time events
+  if(S.events.length>0){
+    const evExp=S.events.filter(e=>e.type==='expense').reduce((a,e)=>a+e.amount,0);
+    const evInc=S.events.filter(e=>e.type==='income').reduce((a,e)=>a+e.amount,0);
+    const c3NoEv=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc3.growth,churn:sc3.churn,expGrowth:sc3.expGrowth,fundAmt:0,fundMo:S.fundMo,events:[],useRevenue:true,useEvents:false,useFunding:false});
+    const evCost=c3NoEv.runway-c3.runway;
+    lines.push(`One-time events total <span class="nr">${fs$(evExp)}</span> in expenses and <span class="ng">${fs$(evInc)}</span> in income — ${evCost>0?'costing ~<span class="nr">'+fDelta(-evCost)+'</span>':'adding ~<span class="ng">'+fDelta(evCost)+'</span>'} on the C3 plan.`);
+  }
+
+  // Funding
+  const fi=fundImpact();
+  if(fi){
+    const ne=fi.newRunway>=18?"Aug '27+":moLbl(Math.round(fi.newRunway)+1);
+    lines.push(`A funding round of <span class="ng">${f$(S.fundAmt)}</span> closing in ${moLbl(S.fundMo)} extends C4 runway by <span class="ng">${fDelta(fi.delta)}</span>, pushing the C4 end date to <span class="nb">${ne}</span>.`);
+  }
+
+  return lines.map(l=>`<p>${l}</p>`).join('');
+}
+
+function updateKPIs(){
+  const c3=runSc('C3'),sc3=S.sc.C3;
+  const nb=S.burn-S.mrr;
+  const end=c3.runway>=18?"Aug '27+":moLbl(Math.round(c3.runway)+1);
+  document.getElementById('kpi-cash').textContent=f$(S.cash);
+  document.getElementById('kpi-rw').textContent=fRw(c3.runway);
+  document.getElementById('kpi-rw-sub').textContent='ends '+end;
+  const nbEl=document.getElementById('kpi-nb');
+  nbEl.textContent=f$(nb); nbEl.className='kc-val '+(nb>0?'col-r':'col-g');
+  document.getElementById('kpi-mrr').textContent=f$(S.mrr);
+  document.getElementById('kpi-arr').textContent='ARR ≈ '+f$(S.mrr*12);
+  document.getElementById('kpi-ch').textContent=fPct(sc3.churn)+'/mo';
+  document.getElementById('kpi-ach').textContent='ann. ≈ '+fAnn(sc3.churn);
+}
+
+function renderEvents(){
+  document.getElementById('ev-list').innerHTML=S.events.map(e=>`
+    <div class="ev-row">
+      <span class="ev-mo">M${e.month}</span>
+      <span class="ev-lbl" title="${e.label}">${e.label}</span>
+      <span class="ev-amt ${e.type==='expense'?'ev-exp':'ev-inc'}">${e.type==='expense'?'-':'+'}${fs$(e.amount)}</span>
+      <button class="ev-del" onclick="delEv(${e.id})">×</button>
+    </div>`).join('');
+}
+function delEv(id){S.events=S.events.filter(e=>e.id!==id);refresh();}
+function openForm(){document.getElementById('add-form').classList.add('open');}
+function closeForm(){document.getElementById('add-form').classList.remove('open');['ef-name','ef-amt','ef-mo'].forEach(i=>document.getElementById(i).value='');}
+function saveEvent(){
+  const name=document.getElementById('ef-name').value.trim();
+  const type=document.getElementById('ef-type').value;
+  const amt=parseFloat(document.getElementById('ef-amt').value);
+  const mo=parseInt(document.getElementById('ef-mo').value);
+  if(!name||isNaN(amt)||isNaN(mo)||mo<1||mo>18)return;
+  S.events.push({id:nextId++,label:name,type,amount:amt,month:mo});
+  closeForm();refresh();
+}
+
+const SC_META={
+  C1:{name:'C1 Conservative',desc:'Burn only. No revenue. Absolute floor.',isPlan:false,pill:'p-r',rc:'col-r'},
+  C3:{name:'C3 Realistic',desc:'Plan case.',isPlan:true,pill:'p-b',rc:'col-b'},
+  C4:{name:'C4 Optimistic',desc:'Funding applied if entered.',isPlan:false,pill:'p-g',rc:'col-g'},
+};
+
+function renderScRows(){
+  const html=['C1','C3','C4'].map(id=>{
+    const m=SC_META[id],sc=S.sc[id],res=runSc(id);
+    const rw=res.runway,plus=rw>=18;
+    const moTxt=plus?'18+ mo':Math.floor(rw)+' mo';
+    const daysTxt=(()=>{const d=Math.round((rw-Math.floor(rw))*30.4375);return(!plus&&d>0)?'+'+d+'d':''})();
+    const dateTxt=plus?"Aug '27+":moLbl(Math.round(rw)+1);
+    const fc=res.finalCash;
+    const fcCls=fc>200000?'col-g':(fc>0?'':'col-r');
+    const noRev=!sc.useRevenue;
+
+    return`<div class="srow${m.isPlan?' plan':''}">
+      <div>
+        <div class="sn-name">${m.name}${m.isPlan?'<span class="plan-badge">plan</span>':''}</div>
+        <div class="sn-desc">${m.desc}</div>
+      </div>
+      <div>
+        <div class="rw-mo ${m.rc}">${moTxt}</div>
+        ${daysTxt?`<div class="rw-days">${daysTxt}</div>`:''}
+        <div class="rw-pill ${m.pill}">${dateTxt}</div>
+      </div>
+      <div class="sc-inp-wrap">
+        <input class="sc-inp" type="number" step="0.5" value="${sc.growth}" ${noRev?'disabled':''} oninput="setSc('${id}','growth',this.value)">
+        ${noRev?'<div class="sc-inp-lbl">n/a</div>':''}
+      </div>
+      <div class="sc-inp-wrap">
+        <input class="sc-inp" type="number" step="0.5" value="${sc.churn}" ${noRev?'disabled':''} oninput="setSc('${id}','churn',this.value)">
+        ${!noRev?`<div class="sc-inp-lbl">ann≈${fAnn(sc.churn)}</div>`:''}
+      </div>
+      <div class="sc-inp-wrap">
+        <input class="sc-inp" type="number" step="0.1" value="${sc.expGrowth}" oninput="setSc('${id}','expGrowth',this.value)">
+      </div>
+      <div class="ev-cell">${sc.useEvents?(S.events.length>0?S.events.length+'ev':'—'):'Off'}</div>
+      <div class="cash18 ${fcCls}">${plus?fs$(fc):(fc>0?fs$(fc):'$0')}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('srows').innerHTML=html;
+}
+
+function setSc(id,key,val){
+  const v=parseFloat(val);
+  if(isNaN(v))return;
+  S.sc[id][key]=v;
+  refresh();
+}
+
+function updateFundLbl(){
+  const el=document.getElementById('fund-impact');
+  const fi=fundImpact();
+  if(!fi){el.style.display='none';return;}
+  const ne=fi.newRunway>=18?"Aug '27+":moLbl(Math.round(fi.newRunway)+1);
+  el.style.display='block';
+  el.textContent=`${fDelta(fi.delta)} additional runway (C4) · new end: ${ne}`;
+}
+
+let chart=null;
+function initChart(){
+  const ctx=document.getElementById('chart').getContext('2d');
+  const labels=Array.from({length:19},(_,i)=>i===0?"Mar '26":moLbl(i+1));
+  chart=new Chart(ctx,{
+    type:'line',
+    data:{labels,datasets:[
+      {label:'C1',data:[],borderColor:'#ef4444',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:0.2},
+      {label:'C3',data:[],borderColor:'#3b82f6',backgroundColor:'transparent',borderWidth:2,pointRadius:0,tension:0.2},
+      {label:'C4',data:[],borderColor:'#22c55e',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:0.2},
+    ]},
+    options:{
+      responsive:true,interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{display:false},
+        tooltip:{backgroundColor:'#1e2535',borderColor:'rgba(255,255,255,0.07)',borderWidth:.5,titleColor:'#9ca3af',bodyColor:'#e8eaf0',titleFont:{family:"'IBM Plex Mono',monospace",size:10},bodyFont:{family:"'IBM Plex Mono',monospace",size:11},callbacks:{label:c=>` ${c.dataset.label}: ${fs$(c.parsed.y)}`}}
+      },
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,0.04)',drawTicks:false},ticks:{color:'#6b7280',font:{family:"'IBM Plex Mono',monospace",size:9},maxRotation:45,autoSkip:true,maxTicksLimit:10},border:{color:'rgba(255,255,255,0.07)'}},
+        y:{grid:{color:'rgba(255,255,255,0.04)',drawTicks:false},ticks:{color:'#6b7280',font:{family:"'IBM Plex Mono',monospace",size:9},callback:v=>fs$(v)},border:{color:'rgba(255,255,255,0.07)'}}
+      }
+    }
+  });
+}
+function updateChart(){
+  if(!chart)return;
+  ['C1','C3','C4'].forEach((id,i)=>{chart.data.datasets[i].data=runSc(id).arr;});
+  chart.update('none');
+}
+
+function refresh(){
+  updateKPIs();
+  updateFundLbl();
+  renderEvents();
+  renderScRows();
+  document.getElementById('exec-body').innerHTML=buildExec();
+  updateChart();
+}
+
+function numIn(id,key){
+  document.getElementById(id).addEventListener('input',function(){
+    const v=parseFloat(this.value);
+    if(!isNaN(v)){S[key]=v;refresh();}
+  });
+}
+
+function init(){
+  numIn('in-cash','cash');
+  numIn('in-mrr','mrr');
+  numIn('in-burn','burn');
+  numIn('in-fund-mo','fundMo');
+  document.getElementById('in-fund-amt').addEventListener('input',function(){S.fundAmt=parseFloat(this.value)||0;refresh();});
+  initChart();
+  refresh();
+}
+
+document.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>
