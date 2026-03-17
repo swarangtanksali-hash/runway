@@ -37,11 +37,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13
 .exec-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--blu);text-transform:uppercase;margin-bottom:10px;opacity:.8}
 .exec-body{font-size:13px;line-height:1.95;color:#c4cedf;font-family:var(--sans)}
 .exec-body p{margin-bottom:5px}.exec-body p:last-child{margin-bottom:0}
-.nr{color:var(--rs);font-family:var(--mono);font-weight:500}
-.ng{color:var(--gs);font-family:var(--mono);font-weight:500}
-.nb{color:var(--bs);font-family:var(--mono);font-weight:500}
-.na{color:var(--as);font-family:var(--mono);font-weight:500}
-.np{color:var(--pur);font-family:var(--mono);font-weight:500}
+.nr{color:var(--rs);font-family:var(--mono);font-weight:500;letter-spacing:0;vertical-align:baseline}
+.ng{color:var(--gs);font-family:var(--mono);font-weight:500;letter-spacing:0;vertical-align:baseline}
+.nb{color:var(--bs);font-family:var(--mono);font-weight:500;letter-spacing:0;vertical-align:baseline}
+.na{color:var(--as);font-family:var(--mono);font-weight:500;letter-spacing:0;vertical-align:baseline}
+.np{color:var(--pur);font-family:var(--mono);font-weight:500;letter-spacing:0;vertical-align:baseline}
 
 /* KPI strip */
 .kpi-strip{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
@@ -482,7 +482,7 @@ function eventsHTML(showControls){
       <div class="ev-impact ${impactCls}">${impactTxt}</div>
     </div>`;
   }).join('');
-  html+=`<button class="add-ev-btn" onclick="openForm()">+ add event</button>`;
+  html+=`<button class="add-ev-btn" onclick="openForm()">+ add expense</button>`;
   return html;
 }
 function delEv(id){S.events=S.events.filter(e=>e.id!==id);refresh();}
