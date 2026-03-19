@@ -155,7 +155,7 @@ canvas{display:block}
 
 <div class="ph">
   <span class="ph-ttl">RUNWAY DASHBOARD</span>
-  <span class="ph-sub">22-month horizon · M1 = Mar '26 → Dec '27</span>
+  <span class="ph-sub">22-month horizon · Mar '26 → Dec '27</span>
   <span class="live">LIVE</span>
 </div>
 
@@ -167,9 +167,9 @@ canvas{display:block}
 <div class="kpi-strip">
   <div class="kc"><div class="kc-lbl">Starting Cash</div><div class="kc-val col-b" id="kpi-cash">—</div></div>
   <div class="kc"><div class="kc-lbl">S2 Realistic Runway</div><div class="kc-val col-b" id="kpi-rw">—</div><div class="kc-sub" id="kpi-rw-sub">—</div></div>
-  <div class="kc"><div class="kc-lbl">Net Monthly Burn</div><div class="kc-val" id="kpi-nb">—</div><div class="kc-sub">Gross Burn − MRR</div></div>
-  <div class="kc"><div class="kc-lbl">Current MRR</div><div class="kc-val col-g" id="kpi-mrr">—</div><div class="kc-sub" id="kpi-arr">—</div></div>
-  <div class="kc"><div class="kc-lbl">S2 Churn Rate</div><div class="kc-val col-r" id="kpi-ch">—</div><div class="kc-sub" id="kpi-ach">—</div></div>
+  <div class="kc"><div class="kc-lbl">Net Monthly Burn</div><div class="kc-val" id="kpi-nb">—</div></div>
+  <div class="kc"><div class="kc-lbl">Current ARR</div><div class="kc-val col-g" id="kpi-arr">—</div><div class="kc-sub" id="kpi-mrr-sub">—</div></div>
+  <div class="kc"><div class="kc-lbl">S2 $ Churn Rate</div><div class="kc-val col-r" id="kpi-ch">—</div><div class="kc-sub" id="kpi-ach">—</div></div>
 </div>
 
 <div class="layout">
@@ -178,7 +178,10 @@ canvas{display:block}
   <div class="lp">
     <div class="sec">Baseline Inputs</div>
     <div class="ig"><div class="ig-lbl">Starting Cash ($)</div><input class="fi" type="number" id="in-cash" value="4880000"></div>
-    <div class="ig"><div class="ig-lbl">Current MRR ($)</div><input class="fi" type="number" id="in-mrr" value="14250"></div>
+    <div class="ig">
+      <div class="ig-lbl">Current ARR ($) <em id="mrr-hint" style="color:var(--muted);font-size:9px"></em></div>
+      <input class="fi" type="number" id="in-arr" value="171000">
+    </div>
     <div class="ig"><div class="ig-lbl">Monthly Gross Burn ($)</div><input class="fi" type="number" id="in-burn" value="345000"></div>
 
     <div class="hr"></div>
@@ -203,7 +206,7 @@ canvas{display:block}
       </div>
       <div id="srows"></div>
       <div style="padding:7px 12px;background:var(--bg3);border-top:.5px solid var(--border);font-size:9px;color:var(--muted);font-family:var(--mono);line-height:1.6">
-        <span style="color:var(--bs)">NEW ARR</span> = Net new + Expansion on the opening MRR base each month &nbsp;·&nbsp; <span style="color:var(--rs)">$ Churn</span> = MRR $ lost as % of opening MRR (not logo churn)
+        <span style="color:var(--bs)">NEW ARR</span> = Net new + Expansion on the opening ARR base each month &nbsp;·&nbsp; <span style="color:var(--rs)">$ Churn</span> = ARR $ lost as % of opening ARR (not logo churn)
       </div>
       <!-- Add event inline form -->
       <div class="ev-form-wrap" id="ev-form-wrap">
@@ -211,23 +214,36 @@ canvas{display:block}
           <input class="ef-name-in" type="text" id="ef-name" placeholder="Label (e.g. Marketing Burst)">
           <select class="ef-type-in" id="ef-type"><option value="expense">Expense</option><option value="income">Income</option></select>
           <input class="ef-amt-in" type="number" id="ef-amt" placeholder="Amount $">
-          <input class="ef-mo-in" type="number" id="ef-mo" placeholder="From Mo" min="1" max="22">
-          <input class="ef-mo-in" type="number" id="ef-mo-end" placeholder="To Mo" min="1" max="22">
+          <input class="ef-mo-in" type="number" id="ef-mo" placeholder="From (1=Mar)" min="1" max="22">
+          <input class="ef-mo-in" type="number" id="ef-mo-end" placeholder="To (opt)" min="1" max="22">
           <button class="btn-ok" onclick="saveEvent()">Add</button>
           <button class="btn-no" onclick="closeForm()">Cancel</button>
         </div>
-        <div style="font-size:9px;color:var(--muted);font-family:var(--mono);margin-top:5px;padding:0 2px">Leave "To Mo" blank for a single-month event, or set it higher for a recurring charge (e.g. From 2 To 5 = months 2, 3, 4, 5)</div>
+        <div style="font-size:9px;color:var(--muted);font-family:var(--mono);margin-top:5px;padding:0 2px">Month numbers: 1=Mar '26, 2=Apr '26 … 10=Dec '26 … 22=Dec '27. Leave "To" blank for a single month.</div>
       </div>
     </div>
 
-    <!-- CHART -->
+    <!-- CASH CHART -->
     <div class="chart-card">
+      <div style="font-size:9px;font-family:var(--mono);color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">Cash Runway</div>
       <div class="c-leg">
         <div class="c-li"><div class="c-line" style="background:var(--red)"></div>S1 Conservative</div>
         <div class="c-li"><div class="c-line" style="background:var(--blu)"></div>S2 Realistic</div>
         <div class="c-li"><div class="c-line" style="background:var(--grn)"></div>S3 Optimistic</div>
       </div>
       <canvas id="chart" height="130"></canvas>
+    </div>
+
+    <!-- ARR CHART -->
+    <div class="chart-card">
+      <div style="font-size:9px;font-family:var(--mono);color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">ARR Growth by Scenario</div>
+      <div class="c-leg">
+        <div class="c-li"><div class="c-line" style="background:rgba(239,68,68,0.4)"></div>S1</div>
+        <div class="c-li"><div class="c-line" style="background:var(--blu)"></div>S2 Realistic</div>
+        <div class="c-li"><div class="c-line" style="background:var(--grn)"></div>S3 Optimistic</div>
+        <div class="c-li"><div class="c-line" style="border-top:2px dashed rgba(252,165,165,0.6);background:none;height:0;border-radius:0"></div>Breakeven ARR</div>
+      </div>
+      <canvas id="arr-chart" height="130"></canvas>
     </div>
 
   </div>
@@ -355,8 +371,13 @@ function buildExec(){
   const lines=[];
 
   // ── Bullet 1: State of play
-  lines.push(`• At current gross burn of <span class="nr">${f$(S.burn)}/mo</span> and MRR of <span class="ng">${f$(S.mrr)}</span>, the realistic plan (S2) gives us <span class="nb">${fRwFull(s2rw)}</span> of runway, ending <span class="nb">${s2End}</span>.`
-    + (gapDays>15 ? ` Burn-only floor (S1) runs out <span class="nr">${Math.round(gap*10)/10} months earlier</span>.` : ''));
+  const beS2=breakevenCrossMonth('S2'), beS3=breakevenCrossMonth('S3');
+  const beTxt = beS2
+    ? ` S2 ARR crosses breakeven in <span class="nb">${moLbl(beS2)}</span>${beS3&&beS3<beS2?`, S3 in <span class="ng">${moLbl(beS3)}</span>`:(beS3?`, S3 in <span class="ng">${moLbl(beS3)}</span>`:'')} — see ARR chart below.`
+    : ` Neither scenario reaches ARR breakeven within the horizon.`;
+  lines.push(`• At current gross burn of <span class="nr">${f$(S.burn)}/mo</span> and ARR of <span class="ng">${f$(S.mrr*12)}</span>, the realistic plan (S2) gives us <span class="nb">${fRwFull(s2rw)}</span> of runway, ending <span class="nb">${s2End}</span>.`
+    + (gapDays>15 ? ` Burn-only floor (S1) runs out <span class="nr">${Math.round(gap*10)/10} months earlier</span>.` : '')
+    + beTxt);
 
   // ── Bullet 2: S2 vs S3 — ARR growth impact
   const growthDelta = sc3.growth - sc2.growth;
@@ -398,7 +419,7 @@ function buildExec(){
       const churnDays = Math.round((totalRwDelta - (rwGrowthOnly-s2rw))*30.4375);
       const sv = churnSavings(sc2.churn, sc2.growth, churnDelta, 12);
       const sign=churnDelta>0;
-      lines.push(`&nbsp;&nbsp;&nbsp;↳ Churn <span class="${sign?'ng':'nr'}">${sign?'−':'+'}${fPct(Math.abs(churnDelta))}/mo</span> lower in S3 (${fPct(sc2.churn)} → ${fPct(sc3.churn)}) — adds <span class="${sign?'ng':'nr'}">${sign?'+':'−'}${Math.abs(churnDays)} days</span> of runway and retains ~<span class="${sign?'ng':'nr'}">${fs$(Math.abs(sv.total))}</span> in revenue (<span class="${sign?'ng':'nr'}">${fs$(Math.abs(sv.existing))}</span> from existing base, <span class="${sign?'ng':'nr'}">${fs$(Math.abs(sv.netNew))}</span> from net-new MRR).`);
+      lines.push(`&nbsp;&nbsp;&nbsp;↳ Churn <span class="${sign?'ng':'nr'}">${sign?'−':'+'}${fPct(Math.abs(churnDelta))}/mo</span> lower in S3 (${fPct(sc2.churn)} → ${fPct(sc3.churn)}) — adds <span class="${sign?'ng':'nr'}">${sign?'+':'−'}${Math.abs(churnDays)} days</span> of runway and retains ~<span class="${sign?'ng':'nr'}">${fs$(Math.abs(sv.total))}</span> in revenue (<span class="${sign?'ng':'nr'}">${fs$(Math.abs(sv.existing))}</span> from existing base, <span class="${sign?'ng':'nr'}">${fs$(Math.abs(sv.netNew))}</span> from net-new ARR).`);
     }
   }
 
@@ -443,9 +464,10 @@ function updateKPIs(){
   document.getElementById('kpi-rw').textContent=fRwRounded(s2rw);
   document.getElementById('kpi-rw-sub').textContent='ends '+end;
   const nbEl=document.getElementById('kpi-nb');
-  nbEl.textContent=f$(nb);nbEl.className='kc-val '+(nb>0?'col-r':'col-g');
-  document.getElementById('kpi-mrr').textContent=f$(S.mrr);
-  document.getElementById('kpi-arr').textContent='ARR ≈ '+f$(S.mrr*12);
+  nbEl.textContent=f$(nb); nbEl.className='kc-val '+(nb>0?'col-r':'col-g');
+  document.getElementById('kpi-arr').textContent=f$(S.mrr*12);
+  document.getElementById('kpi-mrr-sub').textContent='MRR '+f$(S.mrr)+'/mo';
+  document.getElementById('mrr-hint').textContent='MRR = '+f$(S.mrr)+'/mo';
   document.getElementById('kpi-ch').textContent=fPct(sc2.churn)+'/mo';
   document.getElementById('kpi-ach').textContent='ann. ≈ '+fAnn(sc2.churn);
 }
@@ -464,7 +486,7 @@ function eventsHTML(showControls){
   if(!showControls) return '<div class="ev-off">—</div>';
   let html=S.events.map(e=>{
     const end=e.monthEnd&&e.monthEnd>e.month?e.monthEnd:null;
-    const moTxt=end?`M${e.month}–M${end}`:`M${e.month}`;
+    const moTxt=end?`${moLbl(e.month)}–${moLbl(end)}`:`${moLbl(e.month)}`;
     const totalAmt=end?(e.amount*(end-e.month+1)):e.amount;
     const impactDays=eventImpactDays(e);
     const isExpense=e.type==='expense';
@@ -589,7 +611,81 @@ function updateFundLbl(){
   el.textContent=`${fDelta(fi.delta)} additional runway (S3) · new end: ${ne}`;
 }
 
-// ── CHART ─────────────────────────────────────────────────────────────────
+// ── ARR CHART ─────────────────────────────────────────────────────────────
+let arrChart=null;
+
+function getArrData(id){
+  // Returns monthly ARR array for a scenario
+  const sc=S.sc[id];
+  const arr=[S.mrr*12];
+  let mrr=S.mrr;
+  for(let m=1;m<=HORIZON;m++){
+    if(sc.useRevenue) mrr=Math.max(mrr+mrr*(sc.growth/100)-mrr*(sc.churn/100),0);
+    arr.push(mrr*12);
+  }
+  return arr;
+}
+
+function initArrChart(){
+  const ctx=document.getElementById('arr-chart').getContext('2d');
+  const labels=Array.from({length:HORIZON+1},(_,i)=>i===0?"Mar '26":moLbl(i+1));
+
+  // Breakeven ARR = burn at each month (with 1% expense growth using S2 expGrowth)
+  const breakevenArr=Array.from({length:HORIZON+1},(_,i)=>{
+    return S.burn*Math.pow(1+S.sc.S2.expGrowth/100, i)*12;
+  });
+
+  arrChart=new Chart(ctx,{
+    type:'line',
+    data:{labels,datasets:[
+      {label:'S1 ARR',data:[],borderColor:'rgba(239,68,68,0.4)',backgroundColor:'transparent',borderWidth:1,pointRadius:0,tension:0.2},
+      {label:'S2 ARR',data:[],borderColor:'#3b82f6',backgroundColor:'transparent',borderWidth:2,pointRadius:0,tension:0.2},
+      {label:'S3 ARR',data:[],borderColor:'#22c55e',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:0.2},
+      {label:'Breakeven ARR',data:breakevenArr,borderColor:'rgba(252,165,165,0.6)',backgroundColor:'transparent',borderWidth:1,borderDash:[4,3],pointRadius:0,tension:0},
+    ]},
+    options:{
+      responsive:true,interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'#1e2535',borderColor:'rgba(255,255,255,0.07)',borderWidth:.5,
+          titleColor:'#9ca3af',bodyColor:'#e8eaf0',
+          titleFont:{family:"'IBM Plex Mono',monospace",size:10},
+          bodyFont:{family:"'IBM Plex Mono',monospace",size:11},
+          callbacks:{label:c=>` ${c.dataset.label}: ${fs$(c.parsed.y)}`}
+        }
+      },
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,0.04)',drawTicks:false},ticks:{color:'#6b7280',font:{family:"'IBM Plex Mono',monospace",size:9},maxRotation:45,autoSkip:true,maxTicksLimit:12},border:{color:'rgba(255,255,255,0.07)'}},
+        y:{grid:{color:'rgba(255,255,255,0.04)',drawTicks:false},ticks:{color:'#6b7280',font:{family:"'IBM Plex Mono',monospace",size:9},callback:v=>fs$(v)},border:{color:'rgba(255,255,255,0.07)'}}
+      }
+    }
+  });
+}
+
+function updateArrChart(){
+  if(!arrChart) return;
+  arrChart.data.datasets[0].data=getArrData('S1');
+  arrChart.data.datasets[1].data=getArrData('S2');
+  arrChart.data.datasets[2].data=getArrData('S3');
+  // Recalculate breakeven line (burn grows with expense %)
+  arrChart.data.datasets[3].data=Array.from({length:HORIZON+1},(_,i)=>
+    S.burn*Math.pow(1+S.sc.S2.expGrowth/100,i)*12
+  );
+  arrChart.update('none');
+}
+
+// Find which month a scenario's ARR crosses the breakeven line
+function breakevenCrossMonth(id){
+  const sc=S.sc[id];
+  let mrr=S.mrr;
+  for(let m=1;m<=HORIZON;m++){
+    const burnAtM=S.burn*Math.pow(1+sc.expGrowth/100,m-1);
+    if(sc.useRevenue) mrr=Math.max(mrr+mrr*(sc.growth/100)-mrr*(sc.churn/100),0);
+    if(mrr>=burnAtM) return m;
+  }
+  return null;
+}
 let chart=null;
 function initChart(){
   const ctx=document.getElementById('chart').getContext('2d');
@@ -620,13 +716,13 @@ function updateChart(){
   chart.update('none');
 }
 
-// ── REFRESH ───────────────────────────────────────────────────────────────
 function refresh(){
   updateKPIs();
   updateFundLbl();
   renderScRows();
   document.getElementById('exec-body').innerHTML=buildExec();
   updateChart();
+  updateArrChart();
 }
 
 function numIn(id,key){
@@ -636,9 +732,16 @@ function numIn(id,key){
 }
 
 function init(){
-  numIn('in-cash','cash');numIn('in-mrr','mrr');numIn('in-burn','burn');numIn('in-fund-mo','fundMo');
+  numIn('in-cash','cash');
+  numIn('in-burn','burn');
+  numIn('in-fund-mo','fundMo');
+  // ARR input: convert to MRR internally
+  document.getElementById('in-arr').addEventListener('input',function(){
+    const v=parseFloat(this.value);
+    if(!isNaN(v)){ S.mrr=v/12; refresh(); }
+  });
   document.getElementById('in-fund-amt').addEventListener('input',function(){S.fundAmt=parseFloat(this.value)||0;refresh();});
-  initChart();refresh();
+  initChart(); initArrChart(); refresh();
 }
 
 document.addEventListener('DOMContentLoaded',init);
