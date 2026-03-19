@@ -69,13 +69,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13
 
 /* Scenario table */
 .stbl{background:var(--bg2);border:.5px solid var(--border);border-radius:6px;overflow:hidden;box-shadow:var(--shadow)}
-/* cols: name | runway | arr | churn | exp | events */
-.stbl-hd{display:grid;grid-template-columns:148px 106px 76px 90px 76px 1fr;padding:8px 12px;background:var(--bg3);border-bottom:.5px solid var(--border);gap:6px}
+/* cols: name | runway | arr | churn | exp */
+.stbl-hd{display:grid;grid-template-columns:148px 106px 76px 90px 76px;padding:8px 12px;background:var(--bg3);border-bottom:.5px solid var(--border);gap:6px}
 .th{font-family:var(--mono);font-size:9px;letter-spacing:.09em;color:var(--muted);text-transform:uppercase;display:flex;align-items:center;gap:3px}
 .th-r{font-size:8px;color:var(--rs)}
 .th-b{font-size:8px;color:var(--bs)}
 
-.srow{display:grid;grid-template-columns:148px 106px 76px 90px 76px 1fr;padding:11px 12px;border-bottom:.5px solid var(--border2);gap:6px;align-items:start}
+.srow{display:grid;grid-template-columns:148px 106px 76px 90px 76px;padding:11px 12px;border-bottom:.5px solid var(--border2);gap:6px;align-items:start}
 .srow:last-child{border-bottom:none}
 .srow.plan{background:var(--plan-bg);border-left:2px solid var(--blu)}
 .srow:hover{background:rgba(255,255,255,.015)}
@@ -203,13 +203,18 @@ canvas{display:block}
         <div class="th">NEW ARR <span class="th-b">%/mo</span></div>
         <div class="th">$ Churn <span class="th-r">%/mo</span></div>
         <div class="th">Exp Growth <span class="th-r">%/mo</span></div>
-        <div class="th">One-Time Events</div>
       </div>
       <div id="srows"></div>
       <div style="padding:7px 12px;background:var(--bg3);border-top:.5px solid var(--border);font-size:9px;color:var(--muted);font-family:var(--mono);line-height:1.6">
         <span style="color:var(--bs)">NEW ARR</span> = Net new + Expansion on the opening ARR base each month &nbsp;·&nbsp; <span style="color:var(--rs)">$ Churn</span> = ARR $ lost as % of opening ARR (not logo churn)
       </div>
-      <!-- Add event inline form -->
+
+      <!-- SHARED ADJUSTMENTS PANEL -->
+      <div style="padding:10px 12px;background:var(--bg2);border-top:.5px solid var(--border)">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:8px">Adjustments — Applied to S2 &amp; S3</div>
+        <div class="ev-col" id="shared-adj"></div>
+      </div>
+      <!-- Add event form -->
       <div class="ev-form-wrap" id="ev-form-wrap">
         <div class="ev-form-inner">
           <input class="ef-name-in" type="text" id="ef-name" placeholder="Label (e.g. ACME deal)">
@@ -405,16 +410,12 @@ function buildExec(){
   const gapDays=Math.round(gap*30.4375);
   const lines=[];
 
-  // ── Bullet 1: State of play
+  // ── Bullet 1: State of play — one-liner
   const beS2=breakevenCrossMonth('S2'), beS3=breakevenCrossMonth('S3');
-  const beTxt = beS2
-    ? ` S2 ARR crosses breakeven in <span class="nb">${moLbl(beS2)}</span>${beS3?`, S3 in <span class="ng">${moLbl(beS3)}</span>`:''} — see ARR chart below.`
-    : '';
-  lines.push(`• At current gross burn of <span class="nr">${f$(S.burn)}/mo</span> and ARR of <span class="ng">${f$(S.mrr*12)}</span>, the realistic plan (S2) gives us <span class="nb">${fRwFull(s2rw)}</span> of runway, ending <span class="nb">${s2End}</span>.`
-    + (gapDays>15 ? ` Burn-only floor (S1) runs out <span class="nr">${Math.round(gap*10)/10} months earlier</span>.` : '')
-    + beTxt);
+  const beTxt = beS2 ? ` ARR breakeven: S2 <span class="nb">${moLbl(beS2)}</span>${beS3?`, S3 <span class="ng">${moLbl(beS3)}</span>`:''}.` : '';
+  lines.push(`• Runway — Conservative (S1): <span class="nr">${fRwRounded(s1rw)}</span> ending <span class="nr">${moLbl(Math.round(s1rw)+1)}</span> &nbsp;·&nbsp; Realistic (S2): <span class="nb">${fRwRounded(s2rw)}</span> ending <span class="nb">${s2End}</span> — at <span class="ng">${f$(S.mrr*12)}</span> ARR vs <span class="nr">${f$(S.burn)}/mo</span> burn.${beTxt}`);
 
-  // ── Bullet 2: S2 vs S3 — ARR growth impact
+  // ── Bullet 2: S2 vs S3 — one-liner
   const growthDelta = sc3.growth - sc2.growth;
   const churnDelta  = sc2.churn  - sc3.churn;
   const s3rw_noFund = (() => {
@@ -423,42 +424,53 @@ function buildExec(){
   })();
   const totalRwDelta = s3rw_noFund - s2rw;
   const totalDays    = Math.round(totalRwDelta*30.4375);
-
-  // Isolate ARR growth impact: run S3 growth + S2 churn
   const rwGrowthOnly = simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc3.growth,churn:sc2.churn,expGrowth:sc2.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events,arrEvents:S.arrEvents,useRevenue:true,useEvents:true,useFunding:false},60).runway;
   const growthDays   = Math.round((rwGrowthOnly-s2rw)*30.4375);
-  // ARR revenue delta over 12mo
-  const arrRevDelta  = (() => {
-    let mB=S.mrr,mN=S.mrr,cB=0,cN=0;
-    for(let m=1;m<=12;m++){
-      cB+=mB; cN+=mN;
-      mB=Math.max(mB+mB*(sc2.growth/100)-mB*(sc2.churn/100),0);
-      mN=Math.max(mN+mN*(sc3.growth/100)-mN*(sc2.churn/100),0);
-    }
-    return cN-cB;
-  })();
+  const churnDays    = Math.round((totalRwDelta-(rwGrowthOnly-s2rw))*30.4375);
+  const sv           = churnSavings(sc2.churn, sc2.growth, churnDelta, 12);
 
   if(growthDelta!==0||churnDelta!==0){
-    let b2 = `• S2 → S3 adds <span class="ng">${fRwFull(Math.abs(totalRwDelta))}</span> of additional runway`;
-    if(totalDays<0) b2 = `• S3 vs S2: <span class="nr">${fRwFull(Math.abs(totalRwDelta))}</span> less runway`;
-    lines.push(b2);
-
-    // Sub-point: ARR growth difference
-    if(growthDelta!==0){
-      const sign=growthDelta>0;
-      lines.push(`&nbsp;&nbsp;&nbsp;↳ New ARR <span class="${sign?'ng':'nr'}">${sign?'+':''}${fPct(growthDelta)}/mo</span> higher in S3 (${fPct(sc2.growth)} → ${fPct(sc3.growth)}) — contributes <span class="${sign?'ng':'nr'}">${sign?'+':''}${growthDays>0?growthDays:Math.abs(growthDays)} days</span> of runway and an estimated <span class="${sign?'ng':'nr'}">${sign?'+':'−'}${fs$(Math.abs(arrRevDelta))}</span> in additional revenue over 12 months.`);
-    }
-
-    // Sub-point: churn difference
-    if(churnDelta!==0){
-      const churnDays = Math.round((totalRwDelta - (rwGrowthOnly-s2rw))*30.4375);
-      const sv = churnSavings(sc2.churn, sc2.growth, churnDelta, 12);
-      const sign=churnDelta>0;
-      lines.push(`&nbsp;&nbsp;&nbsp;↳ Churn <span class="${sign?'ng':'nr'}">${sign?'−':'+'}${fPct(Math.abs(churnDelta))}/mo</span> lower in S3 (${fPct(sc2.churn)} → ${fPct(sc3.churn)}) — adds <span class="${sign?'ng':'nr'}">${sign?'+':'−'}${Math.abs(churnDays)} days</span> of runway and retains ~<span class="${sign?'ng':'nr'}">${fs$(Math.abs(sv.total))}</span> in revenue (<span class="${sign?'ng':'nr'}">${fs$(Math.abs(sv.existing))}</span> from existing base, <span class="${sign?'ng':'nr'}">${fs$(Math.abs(sv.netNew))}</span> from net-new ARR).`);
-    }
+    const rwTxt = totalDays>=0
+      ? `adds <span class="ng">${fRwFull(Math.abs(totalRwDelta))}</span>`
+      : `loses <span class="nr">${fRwFull(Math.abs(totalRwDelta))}</span>`;
+    const growthPart = growthDelta!==0
+      ? `<span class="ng">+${fPct(growthDelta)} New ARR</span> contributing <span class="ng">+${Math.abs(growthDays)}d</span>`
+      : '';
+    const churnPart = churnDelta!==0
+      ? `<span class="ng">−${fPct(Math.abs(churnDelta))} churn</span> retaining ~<span class="ng">${fs$(Math.abs(sv.total))}</span> ARR and adding <span class="ng">+${Math.abs(churnDays)}d</span>`
+      : '';
+    const parts=[growthPart,churnPart].filter(Boolean).join(' and ');
+    lines.push(`• S2 → S3 ${rwTxt} of runway — driven by ${parts}.`);
   }
 
-  // ── Bullet 3: One-time events
+  // ── Bullet 3: ARR milestones
+  const arrMilestones = [500000, 1000000];
+  const milestoneLabels = {500000:'$500K', 1000000:'$1M'};
+  function arrCrossMonth(scId, target){
+    const sc=S.sc[scId];
+    if(!sc.useRevenue) return null;
+    let organic=S.mrr;
+    const deals=S.arrEvents.map(e=>({mrrContrib:e.amount/12,startMonth:e.month,renewalMonth:e.month+12}));
+    for(let m=1;m<=60;m++){
+      let dealMrr=0;
+      for(const d of deals) if(m>=d.startMonth) dealMrr+=d.mrrContrib;
+      if((organic+dealMrr)*12>=target) return m;
+      organic=Math.max(organic+organic*(sc.growth/100)-organic*(sc.churn/100),0);
+      for(const d of deals) if(m===d.renewalMonth){d.mrrContrib*=(1-sc.churn/100);d.renewalMonth+=12;}
+    }
+    return null;
+  }
+  const milestoneParts = arrMilestones.map(t=>{
+    const s2m=arrCrossMonth('S2',t), s3m=arrCrossMonth('S3',t);
+    const lbl=milestoneLabels[t];
+    if(!s2m&&!s3m) return `${lbl}: beyond horizon`;
+    const s2txt=s2m?`S2 <span class="nb">${moLbl(s2m)}</span>`:'S2 beyond horizon';
+    const s3txt=s3m?`S3 <span class="ng">${moLbl(s3m)}</span>`:'S3 beyond horizon';
+    return `<span class="nb">${lbl}</span> — ${s2txt}, ${s3txt}`;
+  }).join(' &nbsp;·&nbsp; ');
+  lines.push(`• ARR Milestones: ${milestoneParts}.`);
+
+  // ── Bullet 4: One-time events
   if(S.events.length>0){
     const evExp = S.events.filter(e=>e.type==='expense').reduce((a,e)=>{
       const span=(e.monthEnd&&e.monthEnd>e.month)?(e.monthEnd-e.month+1):1;
@@ -480,7 +492,7 @@ function buildExec(){
     }
   }
 
-  // ── Bullet 4: Funding
+  // ── Bullet 5: Funding
   const fi=fundImpact();
   if(fi){
     const neEnd=moLbl(Math.round(fi.newRunway)+1);
@@ -520,48 +532,6 @@ function arrEventImpactDays(ev){
   const baseline=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events,arrEvents:S.arrEvents,useRevenue:true,useEvents:true,useFunding:false},60);
   const without=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events,arrEvents:S.arrEvents.filter(e=>e.id!==ev.id),useRevenue:true,useEvents:true,useFunding:false},60);
   return Math.round((baseline.runway-without.runway)*30.4375);
-}
-
-function eventsHTML(showControls){
-  if(!showControls) return '<div class="ev-off">—</div>';
-
-  let html=S.events.map(e=>{
-    const end=e.monthEnd&&e.monthEnd>e.month?e.monthEnd:null;
-    const moTxt=end?`${moLbl(e.month)}–${moLbl(end)}`:`${moLbl(e.month)}`;
-    const recurBadge=e.recurring?` <span style="font-size:8px;color:var(--amb);background:rgba(245,158,11,.1);border:.5px solid rgba(245,158,11,.2);border-radius:3px;padding:0 3px">rec</span>`:'';
-    const totalAmt=end?(e.amount*(end-e.month+1)):e.amount;
-    const impactDays=eventImpactDays(e);
-    const isExpense=e.type==='expense';
-    const impactTxt=isExpense?(impactDays>0?`−${impactDays}d runway`:`no impact`):(impactDays<0?`+${Math.abs(impactDays)}d runway`:`no impact`);
-    const impactCls=isExpense&&impactDays>0?'neg':((!isExpense&&impactDays<0)?'pos':'');
-    return`<div class="ev-tag" style="flex-direction:column;align-items:stretch;gap:2px;padding:4px 6px">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:4px">
-        <span class="ev-tag-lbl" title="${e.label}" style="font-size:10px;font-weight:500;color:var(--dim)">${e.label}${recurBadge}</span>
-        <span style="display:flex;align-items:center;gap:3px">
-          <span class="ev-tag-amt ${isExpense?'ev-exp':'ev-inc'}">${isExpense?'−':'+'}${fs$(totalAmt)}</span>
-          <button class="ev-del" onclick="delEv(${e.id})">×</button>
-        </span>
-      </div>
-      <div style="font-size:9px;font-family:var(--mono);color:var(--muted)">${moTxt} · <span class="${impactCls?'ev-impact '+impactCls:''}" style="display:inline;font-size:9px">${impactTxt}</span></div>
-    </div>`;
-  }).join('');
-
-  html+=S.arrEvents.map(e=>{
-    const d=arrEventImpactDays(e);
-    return`<div class="ev-tag" style="flex-direction:column;align-items:stretch;gap:2px;padding:4px 6px">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:4px">
-        <span class="ev-tag-lbl" title="${e.label}" style="font-size:10px;font-weight:500;color:var(--dim)">${e.label} <span style="font-size:8px;color:var(--pur);background:rgba(167,139,250,.1);border:.5px solid rgba(167,139,250,.3);border-radius:3px;padding:0 3px">ARR</span></span>
-        <span style="display:flex;align-items:center;gap:3px">
-          <span class="ev-tag-amt ev-inc">+${fs$(e.amount)}</span>
-          <button class="ev-del" onclick="delArrEv(${e.id})">×</button>
-        </span>
-      </div>
-      <div style="font-size:9px;font-family:var(--mono);color:var(--muted)">${moLbl(e.month)} · <span class="ev-impact pos" style="display:inline;font-size:9px">+${d}d runway</span></div>
-    </div>`;
-  }).join('');
-
-  html+=`<button class="add-ev-btn" onclick="openForm()">+ Adj — Exp / ARR / Savings</button>`;
-  return html;
 }
 
 function delEv(id){S.events=S.events.filter(e=>e.id!==id);refresh();}
@@ -688,10 +658,54 @@ function renderScRows(){
           : `<div class="sc-inp-row"><button class="sc-step dn" onclick="stepSc('${id}','expGrowth',-0.5)">−</button><input class="sc-inp" type="number" step="0.5" value="${sc.expGrowth}" oninput="setSc('${id}','expGrowth',this.value)"><button class="sc-step up" onclick="stepSc('${id}','expGrowth',0.5)">+</button></div>`
         }
       </div>
-      <div class="ev-col">${eventsHTML(sc.useEvents)}</div>
     </div>`;
   }).join('');
   document.getElementById('srows').innerHTML=html;
+  document.getElementById('shared-adj').innerHTML=sharedAdjHTML();
+}
+
+function sharedAdjHTML(){
+  let html='';
+
+  // Expense/income events
+  html+=S.events.map(e=>{
+    const end=e.monthEnd&&e.monthEnd>e.month?e.monthEnd:null;
+    const moTxt=end?`${moLbl(e.month)}–${moLbl(end)}`:`${moLbl(e.month)}`;
+    const recurBadge=e.recurring?` <span style="font-size:8px;color:var(--amb);background:rgba(245,158,11,.1);border:.5px solid rgba(245,158,11,.2);border-radius:3px;padding:0 3px">rec</span>`:'';
+    const totalAmt=end?(e.amount*(end-e.month+1)):e.amount;
+    const impactDays=eventImpactDays(e);
+    const isExpense=e.type==='expense';
+    const impactTxt=isExpense?(impactDays>0?`−${impactDays}d runway`:`no impact`):(impactDays<0?`+${Math.abs(impactDays)}d runway`:`no impact`);
+    const impactCls=isExpense&&impactDays>0?'neg':((!isExpense&&impactDays<0)?'pos':'');
+    return`<div class="ev-tag" style="flex-direction:column;align-items:stretch;gap:1px;padding:5px 7px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:4px">
+        <span style="font-family:var(--mono);font-size:10px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.label} · ${moTxt}${recurBadge}</span>
+        <span style="display:flex;align-items:center;gap:3px;flex-shrink:0">
+          <span class="ev-tag-amt ${isExpense?'ev-exp':'ev-inc'}" style="font-size:10px">${isExpense?'−':'+'}${fs$(totalAmt)}</span>
+          <button class="ev-del" onclick="delEv(${e.id})">×</button>
+        </span>
+      </div>
+      <div class="ev-impact ${impactCls}" style="display:block;font-size:9px;margin-top:1px">${impactTxt}</div>
+    </div>`;
+  }).join('');
+
+  // ARR events
+  html+=S.arrEvents.map(e=>{
+    const d=arrEventImpactDays(e);
+    return`<div class="ev-tag" style="flex-direction:column;align-items:stretch;gap:1px;padding:5px 7px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:4px">
+        <span style="font-family:var(--mono);font-size:10px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.label} · ${moLbl(e.month)} <span style="font-size:8px;color:var(--pur);background:rgba(167,139,250,.1);border:.5px solid rgba(167,139,250,.3);border-radius:3px;padding:0 3px">ARR</span></span>
+        <span style="display:flex;align-items:center;gap:3px;flex-shrink:0">
+          <span class="ev-tag-amt ev-inc" style="font-size:10px">+${fs$(e.amount)}</span>
+          <button class="ev-del" onclick="delArrEv(${e.id})">×</button>
+        </span>
+      </div>
+      <div class="ev-impact pos" style="display:block;font-size:9px;margin-top:1px">+${d}d runway</div>
+    </div>`;
+  }).join('');
+
+  html+=`<button class="add-ev-btn" onclick="openForm()">+ Adj — Exp / ARR / Savings</button>`;
+  return html;
 }
 
 function setSc(id,key,val){
