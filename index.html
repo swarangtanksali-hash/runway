@@ -212,11 +212,11 @@ canvas{display:block}
       <!-- Add event inline form -->
       <div class="ev-form-wrap" id="ev-form-wrap">
         <div class="ev-form-inner">
-          <input class="ef-name-in" type="text" id="ef-name" placeholder="Label (e.g. Marketing Burst)">
-          <select class="ef-type-in" id="ef-type">
+          <input class="ef-name-in" type="text" id="ef-name" placeholder="Label (e.g. ACME deal)">
+          <select class="ef-type-in" id="ef-type" onchange="toggleRecurring()">
             <option value="expense">Expense</option>
-            <option value="income">Income</option>
-            <option value="savings">Savings</option>
+            <option value="income">Income / Savings</option>
+            <option value="arr">ARR</option>
           </select>
           <select class="ef-recur" id="ef-recur" onchange="toggleRecurring()">
             <option value="onetime">One-time</option>
@@ -224,17 +224,15 @@ canvas{display:block}
           </select>
           <input class="ef-amt-in" type="number" id="ef-amt" placeholder="Amount $">
           <select class="ef-mo-in" id="ef-mo">
-            <option value="">From month…</option>
+            <option value="">Month…</option>
           </select>
-          <select class="ef-mo-in" id="ef-mo-end" style="display:none">
+          <select class="ef-mo-in" id="ef-mo-end">
             <option value="">To month…</option>
           </select>
           <button class="btn-ok" onclick="saveEvent()">Add</button>
           <button class="btn-no" onclick="closeForm()">Cancel</button>
         </div>
-        <div style="font-size:9px;color:var(--muted);font-family:var(--mono);margin-top:5px;padding:0 2px" id="ef-hint">
-          One-time: applies in the selected month only. Recurring: runs from selected month through to end of plan (Dec '27).
-        </div>
+        <div style="font-size:9px;color:var(--muted);font-family:var(--mono);margin-top:5px;padding:0 2px" id="ef-hint"></div>
       </div>
     </div>
 
@@ -253,10 +251,8 @@ canvas{display:block}
     <div class="chart-card">
       <div style="font-size:9px;font-family:var(--mono);color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">ARR Growth by Scenario</div>
       <div class="c-leg">
-        <div class="c-li"><div class="c-line" style="background:rgba(239,68,68,0.4)"></div>S1</div>
         <div class="c-li"><div class="c-line" style="background:var(--blu)"></div>S2 Realistic</div>
         <div class="c-li"><div class="c-line" style="background:var(--grn)"></div>S3 Optimistic</div>
-        <div class="c-li"><div class="c-line" style="border-top:2px dashed rgba(252,165,165,0.6);background:none;height:0;border-radius:0"></div>Breakeven ARR</div>
       </div>
       <canvas id="arr-chart" height="130"></canvas>
     </div>
@@ -276,6 +272,7 @@ const S = {
     {id:1,label:'AI Burst',       type:'expense',amount:25000, month:2, monthEnd:4},
     {id:2,label:'Marketing Burst',type:'expense',amount:37500, month:6, monthEnd:7},
   ],
+  arrEvents:[], // one-time ARR deals: {id, label, amount (ARR $), month}
   sc:{
     S1:{growth:0,  churn:0,  expGrowth:1,  useRevenue:false,useEvents:false,useFunding:false},
     S2:{growth:20, churn:10, expGrowth:1,  useRevenue:true, useEvents:true, useFunding:false},
@@ -316,40 +313,63 @@ function fPct(v){return v.toFixed(1)+'%'}
 function fAnn(m){return((1-Math.pow(1-m/100,12))*100).toFixed(1)+'%'}
 
 // ── SIMULATE ──────────────────────────────────────────────────────────────
-// Simulate up to `horizon` months, return runway (fractional months), cash array, final cash
 function simulate(cfg, horizon){
   horizon = horizon || HORIZON;
-  const{startCash,startMrr,startBurn,growth,churn,expGrowth,fundAmt,fundMo,events,useRevenue,useEvents,useFunding}=cfg;
+  const{startCash,startMrr,startBurn,growth,churn,expGrowth,
+        fundAmt,fundMo,events,arrEvents,useRevenue,useEvents,useFunding}=cfg;
   const arr=[startCash];
-  let cash=startCash,mrr=startMrr,runout=null;
+  let cash=startCash, organicMrr=startMrr, runout=null;
+
+  // Deal buckets: growth applies to organic only; deals decay once at renewal (month+12)
+  const deals=(useRevenue&&arrEvents&&arrEvents.length)
+    ? arrEvents.map(e=>({mrrContrib:e.amount/12, startMonth:e.month, renewalMonth:e.month+12}))
+    : [];
+
   for(let m=1;m<=horizon;m++){
     const burn=startBurn*Math.pow(1+expGrowth/100,m-1);
     let evD=0;
-    if(useEvents&&events)for(const e of events){const end=e.monthEnd||e.month;if(m>=e.month&&m<=end)evD+=(e.type==='income'||e.type==='savings'?1:-1)*e.amount;}
+    if(useEvents&&events)for(const e of events){
+      const end=e.monthEnd||e.month;
+      if(m>=e.month&&m<=end)evD+=(e.type==='income'||e.type==='savings'?1:-1)*e.amount;
+    }
     const fd=(useFunding&&fundAmt>0&&m===fundMo)?fundAmt:0;
-    const rev=useRevenue?mrr:0;
+
+    // Revenue = organic MRR + active deal contributions
+    let dealMrr=0;
+    if(useRevenue) for(const d of deals) if(m>=d.startMonth) dealMrr+=d.mrrContrib;
+    const rev=useRevenue?(organicMrr+dealMrr):0;
+
     const prev=cash;
     cash=cash-burn+rev+evD+fd;
     arr.push(Math.max(cash,0));
     if(runout===null&&cash<=0){const fr=prev/(prev-cash);runout=(m-1)+fr;}
-    if(useRevenue)mrr=Math.max(mrr+mrr*(growth/100)-mrr*(churn/100),0);
+
+    if(useRevenue){
+      // Organic grows + churns normally
+      organicMrr=Math.max(organicMrr+organicMrr*(growth/100)-organicMrr*(churn/100),0);
+      // Deals: apply churn once at renewal month, then reset renewal +12
+      for(const d of deals){
+        if(m===d.renewalMonth){
+          d.mrrContrib=d.mrrContrib*(1-churn/100);
+          d.renewalMonth+=12;
+        }
+      }
+    }
   }
   return{arr,runway:runout!==null?runout:(cash>0?horizon:0),finalCash:arr[horizon]};
 }
 
 function runSc(id, horizon){
   const sc=S.sc[id];
-  return simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,fundAmt:S.fundAmt,fundMo:S.fundMo,events:S.events,useRevenue:sc.useRevenue,useEvents:sc.useEvents,useFunding:sc.useFunding}, horizon);
+  return simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,fundAmt:S.fundAmt,fundMo:S.fundMo,events:S.events,arrEvents:S.arrEvents,useRevenue:sc.useRevenue,useEvents:sc.useEvents,useFunding:sc.useFunding}, horizon);
 }
 
-// For actual end date when runway >= horizon, simulate further
 function trueRunway(id){
   const sc=S.sc[id];
   const quick=runSc(id, HORIZON);
   if(quick.runway < HORIZON) return quick.runway;
-  // simulate out to 60mo to find real end
-  const extended=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,fundAmt:S.fundAmt,fundMo:S.fundMo,events:S.events,useRevenue:sc.useRevenue,useEvents:sc.useEvents,useFunding:sc.useFunding}, 60);
-  return extended.runway; // 60 if truly never runs out
+  const extended=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,fundAmt:S.fundAmt,fundMo:S.fundMo,events:S.events,arrEvents:S.arrEvents,useRevenue:sc.useRevenue,useEvents:sc.useEvents,useFunding:sc.useFunding}, 60);
+  return extended.runway;
 }
 
 // ── CHURN SAVINGS ─────────────────────────────────────────────────────────
@@ -372,7 +392,7 @@ function fundImpact(){
   if(!S.fundAmt||S.fundAmt<=0)return null;
   const sc=S.sc.S3;
   const rw=trueRunway('S3');
-  const noF=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events,useRevenue:true,useEvents:true,useFunding:false}, 60);
+  const noF=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events,arrEvents:S.arrEvents,useRevenue:true,useEvents:true,useFunding:false}, 60);
   return{delta:rw-noF.runway, newRunway:rw};
 }
 
@@ -399,13 +419,13 @@ function buildExec(){
   const churnDelta  = sc2.churn  - sc3.churn;
   const s3rw_noFund = (() => {
     const sc=sc3;
-    return simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events,useRevenue:true,useEvents:true,useFunding:false},60).runway;
+    return simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events,arrEvents:S.arrEvents,useRevenue:true,useEvents:true,useFunding:false},60).runway;
   })();
   const totalRwDelta = s3rw_noFund - s2rw;
   const totalDays    = Math.round(totalRwDelta*30.4375);
 
   // Isolate ARR growth impact: run S3 growth + S2 churn
-  const rwGrowthOnly = simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc3.growth,churn:sc2.churn,expGrowth:sc2.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events,useRevenue:true,useEvents:true,useFunding:false},60).runway;
+  const rwGrowthOnly = simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc3.growth,churn:sc2.churn,expGrowth:sc2.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events,arrEvents:S.arrEvents,useRevenue:true,useEvents:true,useFunding:false},60).runway;
   const growthDays   = Math.round((rwGrowthOnly-s2rw)*30.4375);
   // ARR revenue delta over 12mo
   const arrRevDelta  = (() => {
@@ -444,13 +464,13 @@ function buildExec(){
       const span=(e.monthEnd&&e.monthEnd>e.month)?(e.monthEnd-e.month+1):1;
       return a+e.amount*span;
     },0);
-    const noEv=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc2.growth,churn:sc2.churn,expGrowth:sc2.expGrowth,fundAmt:0,fundMo:S.fundMo,events:[],useRevenue:true,useEvents:false,useFunding:false},60);
+    const noEv=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc2.growth,churn:sc2.churn,expGrowth:sc2.expGrowth,fundAmt:0,fundMo:S.fundMo,events:[],arrEvents:S.arrEvents,useRevenue:true,useEvents:false,useFunding:false},60);
     const evCostDays=Math.round((noEv.runway-s2rw)*30.4375);
 
     // Per-event short labels with individual day costs
     const perEvParts = S.events.map(e=>{
       const span=(e.monthEnd&&e.monthEnd>e.month)?(e.monthEnd-e.month+1):1;
-      const withoutRw=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc2.growth,churn:sc2.churn,expGrowth:sc2.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events.filter(x=>x.id!==e.id),useRevenue:true,useEvents:true,useFunding:false},60);
+      const withoutRw=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc2.growth,churn:sc2.churn,expGrowth:sc2.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events.filter(x=>x.id!==e.id),arrEvents:S.arrEvents,useRevenue:true,useEvents:true,useFunding:false},60);
       const eDays=Math.round((withoutRw.runway-s2rw)*30.4375);
       return `${e.label} −${eDays}d`;
     }).join(', ');
@@ -489,63 +509,98 @@ function updateKPIs(){
 
 // ── EVENTS ────────────────────────────────────────────────────────────────
 function eventImpactDays(ev){
-  // Compare S2 runway with vs without this single event
   const sc=S.sc.S2;
-  const baseline=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events,useRevenue:true,useEvents:true,useFunding:false},60);
-  const without=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events.filter(e=>e.id!==ev.id),useRevenue:true,useEvents:true,useFunding:false},60);
-  const delta=without.runway-baseline.runway; // positive = event costs runway
-  return Math.round(delta*30.4375);
+  const baseline=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events,arrEvents:S.arrEvents,useRevenue:true,useEvents:true,useFunding:false},60);
+  const without=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events.filter(e=>e.id!==ev.id),arrEvents:S.arrEvents,useRevenue:true,useEvents:true,useFunding:false},60);
+  return Math.round((without.runway-baseline.runway)*30.4375);
+}
+
+function arrEventImpactDays(ev){
+  const sc=S.sc.S2;
+  const baseline=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events,arrEvents:S.arrEvents,useRevenue:true,useEvents:true,useFunding:false},60);
+  const without=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events,arrEvents:S.arrEvents.filter(e=>e.id!==ev.id),useRevenue:true,useEvents:true,useFunding:false},60);
+  return Math.round((baseline.runway-without.runway)*30.4375);
 }
 
 function eventsHTML(showControls){
   if(!showControls) return '<div class="ev-off">—</div>';
+
   let html=S.events.map(e=>{
     const end=e.monthEnd&&e.monthEnd>e.month?e.monthEnd:null;
     const moTxt=end?`${moLbl(e.month)}–${moLbl(end)}`:`${moLbl(e.month)}`;
     const recurBadge=e.recurring?` <span style="font-size:8px;color:var(--amb);background:rgba(245,158,11,.1);border:.5px solid rgba(245,158,11,.2);border-radius:3px;padding:0 3px">rec</span>`:'';
     const totalAmt=end?(e.amount*(end-e.month+1)):e.amount;
     const impactDays=eventImpactDays(e);
-    const isExpense=e.type==='expense';    const impactTxt=isExpense
-      ? (impactDays>0?`−${impactDays}d runway`:`no runway impact`)
-      : (impactDays<0?`+${Math.abs(impactDays)}d runway`:`no runway impact`);
+    const isExpense=e.type==='expense';
+    const impactTxt=isExpense?(impactDays>0?`−${impactDays}d runway`:`no impact`):(impactDays<0?`+${Math.abs(impactDays)}d runway`:`no impact`);
     const impactCls=isExpense&&impactDays>0?'neg':((!isExpense&&impactDays<0)?'pos':'');
-    return`<div style="display:flex;flex-direction:column;gap:0">
-      <div class="ev-tag">
-        <span class="ev-tag-mo">${moTxt}</span>
-        <span class="ev-tag-lbl" title="${e.label}">${e.label}${recurBadge}</span>
-        <span class="ev-tag-amt ${isExpense?'ev-exp':'ev-inc'}">${isExpense?'-':'+'}${fs$(totalAmt)}</span>
-        <button class="ev-del" onclick="delEv(${e.id})">×</button>
+    return`<div class="ev-tag" style="flex-direction:column;align-items:stretch;gap:2px;padding:4px 6px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:4px">
+        <span class="ev-tag-lbl" title="${e.label}" style="font-size:10px;font-weight:500;color:var(--dim)">${e.label}${recurBadge}</span>
+        <span style="display:flex;align-items:center;gap:3px">
+          <span class="ev-tag-amt ${isExpense?'ev-exp':'ev-inc'}">${isExpense?'−':'+'}${fs$(totalAmt)}</span>
+          <button class="ev-del" onclick="delEv(${e.id})">×</button>
+        </span>
       </div>
-      <div class="ev-impact ${impactCls}">${impactTxt}</div>
+      <div style="font-size:9px;font-family:var(--mono);color:var(--muted)">${moTxt} · <span class="${impactCls?'ev-impact '+impactCls:''}" style="display:inline;font-size:9px">${impactTxt}</span></div>
     </div>`;
   }).join('');
-  html+=`<button class="add-ev-btn" onclick="openForm()">+ Adj — Exp / Income</button>`;
+
+  html+=S.arrEvents.map(e=>{
+    const d=arrEventImpactDays(e);
+    return`<div class="ev-tag" style="flex-direction:column;align-items:stretch;gap:2px;padding:4px 6px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:4px">
+        <span class="ev-tag-lbl" title="${e.label}" style="font-size:10px;font-weight:500;color:var(--dim)">${e.label} <span style="font-size:8px;color:var(--pur);background:rgba(167,139,250,.1);border:.5px solid rgba(167,139,250,.3);border-radius:3px;padding:0 3px">ARR</span></span>
+        <span style="display:flex;align-items:center;gap:3px">
+          <span class="ev-tag-amt ev-inc">+${fs$(e.amount)}</span>
+          <button class="ev-del" onclick="delArrEv(${e.id})">×</button>
+        </span>
+      </div>
+      <div style="font-size:9px;font-family:var(--mono);color:var(--muted)">${moLbl(e.month)} · <span class="ev-impact pos" style="display:inline;font-size:9px">+${d}d runway</span></div>
+    </div>`;
+  }).join('');
+
+  html+=`<button class="add-ev-btn" onclick="openForm()">+ Adj — Exp / ARR / Savings</button>`;
   return html;
 }
+
 function delEv(id){S.events=S.events.filter(e=>e.id!==id);refresh();}
+function delArrEv(id){S.arrEvents=S.arrEvents.filter(e=>e.id!==id);refresh();}
 
 function populateMonthDropdowns(){
-  const opts = Array.from({length:HORIZON},(_,i)=>{
-    const m=i+1;
-    return `<option value="${m}">${moLbl(m)}</option>`;
-  }).join('');
+  const opts=Array.from({length:HORIZON},(_,i)=>`<option value="${i+1}">${moLbl(i+1)}</option>`).join('');
   ['ef-mo','ef-mo-end'].forEach(id=>{
     const el=document.getElementById(id);
-    const first=el.options[0].outerHTML; // keep placeholder
+    const first=el.options[0].outerHTML;
     el.innerHTML=first+opts;
   });
 }
 
 function toggleRecurring(){
-  const isRecur=document.getElementById('ef-recur').value==='recurring';
-  document.getElementById('ef-mo-end').style.display=isRecur?'none':'inline-block';
-  document.getElementById('ef-hint').textContent=isRecur
-    ? 'Recurring: applies every month from selected month through to end of plan (Dec \'27).'
-    : 'One-time: select a From and To month (or same month for a single occurrence).';
+  const type=document.getElementById('ef-type').value;
+  const isArr=type==='arr';
+  const recurEl=document.getElementById('ef-recur');
+  const toEl=document.getElementById('ef-mo-end');
+  if(isArr){
+    recurEl.style.display='none';
+    toEl.style.display='none';
+    document.getElementById('ef-mo').options[0].text='Deal month…';
+    document.getElementById('ef-hint').textContent='ARR deal: injected into ARR base in selected month. Growth applies to organic base only. Deal churns once at renewal (12 months later).';
+  } else {
+    recurEl.style.display='';
+    const isRecur=recurEl.value==='recurring';
+    toEl.style.display=isRecur?'none':'';
+    document.getElementById('ef-mo').options[0].text='From month…';
+    document.getElementById('ef-hint').textContent=isRecur
+      ?'Recurring: applies every month from selected month through Dec \'27.'
+      :'One-time: select From and To month (same month = single occurrence).';
+  }
 }
 
 function openForm(){
   populateMonthDropdowns();
+  document.getElementById('ef-type').value='expense';
+  document.getElementById('ef-recur').value='onetime';
   toggleRecurring();
   document.getElementById('ev-form-wrap').classList.add('open');
 }
@@ -555,22 +610,25 @@ function saveEvent(){
   const type=document.getElementById('ef-type').value;
   const amt=parseFloat(document.getElementById('ef-amt').value);
   const mo=parseInt(document.getElementById('ef-mo').value);
-  const isRecur=document.getElementById('ef-recur').value==='recurring';
-  const moEndRaw=document.getElementById('ef-mo-end').value;
-  const moEnd=isRecur?HORIZON:(moEndRaw?parseInt(moEndRaw):mo);
   if(!name||isNaN(amt)||isNaN(mo)||mo<1||mo>HORIZON)return;
-  S.events.push({id:nextId++,label:name,type,amount:amt,month:mo,monthEnd:moEnd>=mo?moEnd:mo,recurring:isRecur});
+  if(type==='arr'){
+    S.arrEvents.push({id:nextId++,label:name,amount:amt,month:mo});
+  } else {
+    const isRecur=document.getElementById('ef-recur').value==='recurring';
+    const moEndRaw=document.getElementById('ef-mo-end').value;
+    const moEnd=isRecur?HORIZON:(moEndRaw?parseInt(moEndRaw):mo);
+    S.events.push({id:nextId++,label:name,type,amount:amt,month:mo,monthEnd:moEnd>=mo?moEnd:mo,recurring:isRecur});
+  }
   closeForm();refresh();
 }
 
 function closeForm(){
   document.getElementById('ev-form-wrap').classList.remove('open');
-  document.getElementById('ef-name').value='';
-  document.getElementById('ef-amt').value='';
+  ['ef-name','ef-amt'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('ef-mo').value='';
   document.getElementById('ef-mo-end').value='';
+  document.getElementById('ef-type').value='expense';
   document.getElementById('ef-recur').value='onetime';
-  toggleRecurring();
 }
 
 // ── SCENARIO ROWS ─────────────────────────────────────────────────────────
@@ -663,13 +721,20 @@ function updateFundLbl(){
 let arrChart=null;
 
 function getArrData(id){
-  // Returns monthly ARR array for a scenario
   const sc=S.sc[id];
+  let organicMrr=S.mrr;
+  const deals=S.arrEvents.map(e=>({mrrContrib:e.amount/12,startMonth:e.month,renewalMonth:e.month+12}));
   const arr=[S.mrr*12];
-  let mrr=S.mrr;
   for(let m=1;m<=HORIZON;m++){
-    if(sc.useRevenue) mrr=Math.max(mrr+mrr*(sc.growth/100)-mrr*(sc.churn/100),0);
-    arr.push(mrr*12);
+    if(sc.useRevenue){
+      organicMrr=Math.max(organicMrr+organicMrr*(sc.growth/100)-organicMrr*(sc.churn/100),0);
+      for(const d of deals){
+        if(m===d.renewalMonth){d.mrrContrib=d.mrrContrib*(1-sc.churn/100);d.renewalMonth+=12;}
+      }
+    }
+    let dealMrr=0;
+    for(const d of deals) if(m>=d.startMonth) dealMrr+=d.mrrContrib;
+    arr.push((sc.useRevenue?(organicMrr+dealMrr):0)*12);
   }
   return arr;
 }
@@ -678,18 +743,11 @@ function initArrChart(){
   const ctx=document.getElementById('arr-chart').getContext('2d');
   const labels=Array.from({length:HORIZON+1},(_,i)=>i===0?"Mar '26":moLbl(i+1));
 
-  // Breakeven ARR = burn at each month (with 1% expense growth using S2 expGrowth)
-  const breakevenArr=Array.from({length:HORIZON+1},(_,i)=>{
-    return S.burn*Math.pow(1+S.sc.S2.expGrowth/100, i)*12;
-  });
-
   arrChart=new Chart(ctx,{
     type:'line',
     data:{labels,datasets:[
-      {label:'S1 ARR',data:[],borderColor:'rgba(239,68,68,0.4)',backgroundColor:'transparent',borderWidth:1,pointRadius:0,tension:0.2},
       {label:'S2 ARR',data:[],borderColor:'#3b82f6',backgroundColor:'transparent',borderWidth:2,pointRadius:0,tension:0.2},
       {label:'S3 ARR',data:[],borderColor:'#22c55e',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:0.2},
-      {label:'Breakeven ARR',data:breakevenArr,borderColor:'rgba(252,165,165,0.6)',backgroundColor:'transparent',borderWidth:1,borderDash:[4,3],pointRadius:0,tension:0},
     ]},
     options:{
       responsive:true,interaction:{mode:'index',intersect:false},
@@ -713,24 +771,24 @@ function initArrChart(){
 
 function updateArrChart(){
   if(!arrChart) return;
-  arrChart.data.datasets[0].data=getArrData('S1');
-  arrChart.data.datasets[1].data=getArrData('S2');
-  arrChart.data.datasets[2].data=getArrData('S3');
-  // Recalculate breakeven line (burn grows with expense %)
-  arrChart.data.datasets[3].data=Array.from({length:HORIZON+1},(_,i)=>
-    S.burn*Math.pow(1+S.sc.S2.expGrowth/100,i)*12
-  );
+  arrChart.data.datasets[0].data=getArrData('S2');
+  arrChart.data.datasets[1].data=getArrData('S3');
   arrChart.update('none');
 }
 
 // Find which month a scenario's ARR crosses the breakeven line
 function breakevenCrossMonth(id){
   const sc=S.sc[id];
-  let mrr=S.mrr;
+  if(!sc.useRevenue) return null;
+  let organicMrr=S.mrr;
+  const deals=S.arrEvents.map(e=>({mrrContrib:e.amount/12,startMonth:e.month,renewalMonth:e.month+12}));
   for(let m=1;m<=HORIZON;m++){
     const burnAtM=S.burn*Math.pow(1+sc.expGrowth/100,m-1);
-    if(sc.useRevenue) mrr=Math.max(mrr+mrr*(sc.growth/100)-mrr*(sc.churn/100),0);
-    if(mrr>=burnAtM) return m;
+    let dealMrr=0;
+    for(const d of deals) if(m>=d.startMonth) dealMrr+=d.mrrContrib;
+    if(organicMrr+dealMrr>=burnAtM) return m;
+    organicMrr=Math.max(organicMrr+organicMrr*(sc.growth/100)-organicMrr*(sc.churn/100),0);
+    for(const d of deals) if(m===d.renewalMonth){d.mrrContrib*=(1-sc.churn/100);d.renewalMonth+=12;}
   }
   return null;
 }
