@@ -69,13 +69,23 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13
 
 /* Scenario table */
 .stbl{background:var(--bg2);border:.5px solid var(--border);border-radius:6px;overflow:hidden;box-shadow:var(--shadow)}
-/* cols: name | runway | arr | churn | exp */
-.stbl-hd{display:grid;grid-template-columns:148px 106px 76px 90px 76px;padding:8px 12px;background:var(--bg3);border-bottom:.5px solid var(--border);gap:6px}
+/* cols: name | runway | arr1 | arr2 | churn1 | churn2 | exp */
+.stbl-hd-top{display:grid;grid-template-columns:148px 100px 138px 172px 62px;padding:6px 12px 0;background:var(--bg3);gap:6px}
+.stbl-hd-bot{display:grid;grid-template-columns:148px 100px 65px 65px 80px 84px 62px;padding:3px 12px 6px;background:var(--bg3);border-bottom:.5px solid var(--border);gap:6px}
 .th{font-family:var(--mono);font-size:9px;letter-spacing:.09em;color:var(--muted);text-transform:uppercase;display:flex;align-items:center;gap:3px}
 .th-r{font-size:8px;color:var(--rs)}
 .th-b{font-size:8px;color:var(--bs)}
+.th-grp{font-family:var(--mono);font-size:8px;letter-spacing:.07em;color:var(--muted);text-transform:uppercase;border-bottom:.5px solid var(--border2);padding-bottom:3px;margin-bottom:0}
+.th-grp.blu{color:var(--bs);border-color:rgba(59,130,246,.3)}
+.th-grp.red{color:var(--rs);border-color:rgba(239,68,68,.3)}
+.th-phase{font-family:var(--mono);font-size:9px;color:var(--muted)}
+.th-phase2{color:var(--amb);opacity:.8}
 
-.srow{display:grid;grid-template-columns:148px 106px 76px 90px 76px;padding:11px 12px;border-bottom:.5px solid var(--border2);gap:6px;align-items:start}
+.srow{display:grid;grid-template-columns:148px 100px 65px 65px 80px 84px 62px;padding:10px 12px;border-bottom:.5px solid var(--border2);gap:6px;align-items:center}
+.srow:last-child{border-bottom:none}
+.srow.plan{background:var(--plan-bg);border-left:2px solid var(--blu)}
+.srow:hover{background:rgba(255,255,255,.015)}
+.srow.plan:hover{background:rgba(59,130,246,.07)}
 .srow:last-child{border-bottom:none}
 .srow.plan{background:var(--plan-bg);border-left:2px solid var(--blu)}
 .srow:hover{background:rgba(255,255,255,.015)}
@@ -95,6 +105,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13
 /* Per-scenario inputs */
 .sc-inp-wrap{display:flex;flex-direction:column;gap:2px}
 .sc-inp-lbl{font-size:9px;color:var(--muted);font-family:var(--mono);text-align:right;margin-top:1px}
+.phase-lbl{font-size:8px;font-family:var(--mono);color:var(--muted);letter-spacing:.06em;margin-bottom:3px;padding:2px 0;border-bottom:.5px solid var(--border2)}
+.phase2-lbl{color:var(--amb);opacity:.7}
 
 /* Events column inside table */
 .ev-col{display:flex;flex-direction:column;gap:3px}
@@ -197,12 +209,23 @@ canvas{display:block}
 
     <!-- SCENARIO TABLE -->
     <div class="stbl">
-      <div class="stbl-hd">
+      <!-- Header row 1: group labels -->
+      <div class="stbl-hd-top">
+        <div></div>
+        <div></div>
+        <div class="th-grp blu">New ARR % /mo</div>
+        <div class="th-grp red">$ Churn % /mo</div>
+        <div class="th-grp">Exp</div>
+      </div>
+      <!-- Header row 2: phase labels -->
+      <div class="stbl-hd-bot">
         <div class="th">Scenario</div>
         <div class="th">Runway</div>
-        <div class="th">NEW ARR <span class="th-b">%/mo</span></div>
-        <div class="th">$ Churn <span class="th-r">%/mo</span></div>
-        <div class="th">Exp Growth <span class="th-r">%/mo</span></div>
+        <div class="th th-phase">'26–'27</div>
+        <div class="th th-phase th-phase2">'28–'29</div>
+        <div class="th th-phase">'26–'27</div>
+        <div class="th th-phase th-phase2">'28–'29</div>
+        <div class="th">Growth</div>
       </div>
       <div id="srows"></div>
       <div style="padding:7px 12px;background:var(--bg3);border-top:.5px solid var(--border);font-size:9px;color:var(--muted);font-family:var(--mono);line-height:1.6">
@@ -279,9 +302,9 @@ const S = {
   ],
   arrEvents:[], // one-time ARR deals: {id, label, amount (ARR $), month}
   sc:{
-    S1:{growth:0,  churn:0,  expGrowth:1,  useRevenue:false,useEvents:false,useFunding:false},
-    S2:{growth:20, churn:10, expGrowth:1,  useRevenue:true, useEvents:true, useFunding:false},
-    S3:{growth:25, churn:7,  expGrowth:1,  useRevenue:true, useEvents:true, useFunding:true },
+    S1:{growth:0,  churn:0,  expGrowth:1, growth2:0,  churn2:0,  useRevenue:false,useEvents:false,useFunding:false},
+    S2:{growth:20, churn:10, expGrowth:1, growth2:12, churn2:8,  useRevenue:true, useEvents:true, useFunding:false},
+    S3:{growth:25, churn:7,  expGrowth:1, growth2:15, churn2:6,  useRevenue:true, useEvents:true, useFunding:true },
   }
 };
 let nextId=3;
@@ -318,19 +341,24 @@ function fPct(v){return v.toFixed(1)+'%'}
 function fAnn(m){return((1-Math.pow(1-m/100,12))*100).toFixed(1)+'%'}
 
 // ── SIMULATE ──────────────────────────────────────────────────────────────
+const PHASE2_START = 23; // Jan '28
+
 function simulate(cfg, horizon){
   horizon = horizon || HORIZON;
   const{startCash,startMrr,startBurn,growth,churn,expGrowth,
-        fundAmt,fundMo,events,arrEvents,useRevenue,useEvents,useFunding}=cfg;
+        growth2,churn2,fundAmt,fundMo,events,arrEvents,useRevenue,useEvents,useFunding}=cfg;
   const arr=[startCash];
   let cash=startCash, organicMrr=startMrr, runout=null;
 
-  // Deal buckets: growth applies to organic only; deals decay once at renewal (month+12)
   const deals=(useRevenue&&arrEvents&&arrEvents.length)
     ? arrEvents.map(e=>({mrrContrib:e.amount/12, startMonth:e.month, renewalMonth:e.month+12}))
     : [];
 
   for(let m=1;m<=horizon;m++){
+    // Switch rates at phase 2
+    const g = (m>=PHASE2_START && growth2!==undefined) ? growth2 : growth;
+    const c = (m>=PHASE2_START && churn2!==undefined)  ? churn2  : churn;
+
     const burn=startBurn*Math.pow(1+expGrowth/100,m-1);
     let evD=0;
     if(useEvents&&events)for(const e of events){
@@ -339,7 +367,6 @@ function simulate(cfg, horizon){
     }
     const fd=(useFunding&&fundAmt>0&&m===fundMo)?fundAmt:0;
 
-    // Revenue = organic MRR + active deal contributions
     let dealMrr=0;
     if(useRevenue) for(const d of deals) if(m>=d.startMonth) dealMrr+=d.mrrContrib;
     const rev=useRevenue?(organicMrr+dealMrr):0;
@@ -350,12 +377,10 @@ function simulate(cfg, horizon){
     if(runout===null&&cash<=0){const fr=prev/(prev-cash);runout=(m-1)+fr;}
 
     if(useRevenue){
-      // Organic grows + churns normally
-      organicMrr=Math.max(organicMrr+organicMrr*(growth/100)-organicMrr*(churn/100),0);
-      // Deals: apply churn once at renewal month, then reset renewal +12
+      organicMrr=Math.max(organicMrr+organicMrr*(g/100)-organicMrr*(c/100),0);
       for(const d of deals){
         if(m===d.renewalMonth){
-          d.mrrContrib=d.mrrContrib*(1-churn/100);
+          d.mrrContrib=d.mrrContrib*(1-c/100);
           d.renewalMonth+=12;
         }
       }
@@ -366,14 +391,14 @@ function simulate(cfg, horizon){
 
 function runSc(id, horizon){
   const sc=S.sc[id];
-  return simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,fundAmt:S.fundAmt,fundMo:S.fundMo,events:S.events,arrEvents:S.arrEvents,useRevenue:sc.useRevenue,useEvents:sc.useEvents,useFunding:sc.useFunding}, horizon);
+  return simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,growth2:sc.growth2,churn2:sc.churn2,fundAmt:S.fundAmt,fundMo:S.fundMo,events:S.events,arrEvents:S.arrEvents,useRevenue:sc.useRevenue,useEvents:sc.useEvents,useFunding:sc.useFunding}, horizon);
 }
 
 function trueRunway(id){
   const sc=S.sc[id];
   const quick=runSc(id, HORIZON);
   if(quick.runway < HORIZON) return quick.runway;
-  const extended=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,fundAmt:S.fundAmt,fundMo:S.fundMo,events:S.events,arrEvents:S.arrEvents,useRevenue:sc.useRevenue,useEvents:sc.useEvents,useFunding:sc.useFunding}, 60);
+  const extended=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,growth2:sc.growth2,churn2:sc.churn2,fundAmt:S.fundAmt,fundMo:S.fundMo,events:S.events,arrEvents:S.arrEvents,useRevenue:sc.useRevenue,useEvents:sc.useEvents,useFunding:sc.useFunding}, 60);
   return extended.runway;
 }
 
@@ -397,7 +422,7 @@ function fundImpact(){
   if(!S.fundAmt||S.fundAmt<=0)return null;
   const sc=S.sc.S3;
   const rw=trueRunway('S3');
-  const noF=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events,arrEvents:S.arrEvents,useRevenue:true,useEvents:true,useFunding:false}, 60);
+  const noF=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,growth2:sc.growth2,churn2:sc.churn2,fundAmt:0,fundMo:S.fundMo,events:S.events,arrEvents:S.arrEvents,useRevenue:true,useEvents:true,useFunding:false}, 60);
   return{delta:rw-noF.runway, newRunway:rw};
 }
 
@@ -420,11 +445,11 @@ function buildExec(){
   const churnDelta  = sc2.churn  - sc3.churn;
   const s3rw_noFund = (() => {
     const sc=sc3;
-    return simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events,arrEvents:S.arrEvents,useRevenue:true,useEvents:true,useFunding:false},60).runway;
+    return simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,growth2:sc.growth2,churn2:sc.churn2,fundAmt:0,fundMo:S.fundMo,events:S.events,arrEvents:S.arrEvents,useRevenue:true,useEvents:true,useFunding:false},60).runway;
   })();
   const totalRwDelta = s3rw_noFund - s2rw;
   const totalDays    = Math.round(totalRwDelta*30.4375);
-  const rwGrowthOnly = simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc3.growth,churn:sc2.churn,expGrowth:sc2.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events,arrEvents:S.arrEvents,useRevenue:true,useEvents:true,useFunding:false},60).runway;
+  const rwGrowthOnly = simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc3.growth,churn:sc2.churn,expGrowth:sc2.expGrowth,growth2:sc3.growth2,churn2:sc2.churn2,fundAmt:0,fundMo:S.fundMo,events:S.events,arrEvents:S.arrEvents,useRevenue:true,useEvents:true,useFunding:false},60).runway;
   const growthDays   = Math.round((rwGrowthOnly-s2rw)*30.4375);
   const churnDays    = Math.round((totalRwDelta-(rwGrowthOnly-s2rw))*30.4375);
   const sv           = churnSavings(sc2.churn, sc2.growth, churnDelta, 12);
@@ -452,11 +477,13 @@ function buildExec(){
     let organic=S.mrr;
     const deals=S.arrEvents.map(e=>({mrrContrib:e.amount/12,startMonth:e.month,renewalMonth:e.month+12}));
     for(let m=1;m<=60;m++){
+      const g=(m>=PHASE2_START&&sc.growth2!==undefined)?sc.growth2:sc.growth;
+      const c=(m>=PHASE2_START&&sc.churn2!==undefined)?sc.churn2:sc.churn;
       let dealMrr=0;
       for(const d of deals) if(m>=d.startMonth) dealMrr+=d.mrrContrib;
       if((organic+dealMrr)*12>=target) return m;
-      organic=Math.max(organic+organic*(sc.growth/100)-organic*(sc.churn/100),0);
-      for(const d of deals) if(m===d.renewalMonth){d.mrrContrib*=(1-sc.churn/100);d.renewalMonth+=12;}
+      organic=Math.max(organic+organic*(g/100)-organic*(c/100),0);
+      for(const d of deals) if(m===d.renewalMonth){d.mrrContrib*=(1-c/100);d.renewalMonth+=12;}
     }
     return null;
   }
@@ -476,13 +503,13 @@ function buildExec(){
       const span=(e.monthEnd&&e.monthEnd>e.month)?(e.monthEnd-e.month+1):1;
       return a+e.amount*span;
     },0);
-    const noEv=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc2.growth,churn:sc2.churn,expGrowth:sc2.expGrowth,fundAmt:0,fundMo:S.fundMo,events:[],arrEvents:S.arrEvents,useRevenue:true,useEvents:false,useFunding:false},60);
+    const noEv=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc2.growth,churn:sc2.churn,expGrowth:sc2.expGrowth,growth2:sc2.growth2,churn2:sc2.churn2,fundAmt:0,fundMo:S.fundMo,events:[],arrEvents:S.arrEvents,useRevenue:true,useEvents:false,useFunding:false},60);
     const evCostDays=Math.round((noEv.runway-s2rw)*30.4375);
 
     // Per-event short labels with individual day costs
     const perEvParts = S.events.map(e=>{
       const span=(e.monthEnd&&e.monthEnd>e.month)?(e.monthEnd-e.month+1):1;
-      const withoutRw=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc2.growth,churn:sc2.churn,expGrowth:sc2.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events.filter(x=>x.id!==e.id),arrEvents:S.arrEvents,useRevenue:true,useEvents:true,useFunding:false},60);
+      const withoutRw=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc2.growth,churn:sc2.churn,expGrowth:sc2.expGrowth,growth2:sc2.growth2,churn2:sc2.churn2,fundAmt:0,fundMo:S.fundMo,events:S.events.filter(x=>x.id!==e.id),arrEvents:S.arrEvents,useRevenue:true,useEvents:true,useFunding:false},60);
       const eDays=Math.round((withoutRw.runway-s2rw)*30.4375);
       return `${e.label} −${eDays}d`;
     }).join(', ');
@@ -522,15 +549,15 @@ function updateKPIs(){
 // ── EVENTS ────────────────────────────────────────────────────────────────
 function eventImpactDays(ev){
   const sc=S.sc.S2;
-  const baseline=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events,arrEvents:S.arrEvents,useRevenue:true,useEvents:true,useFunding:false},60);
-  const without=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events.filter(e=>e.id!==ev.id),arrEvents:S.arrEvents,useRevenue:true,useEvents:true,useFunding:false},60);
+  const baseline=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,growth2:sc.growth2,churn2:sc.churn2,fundAmt:0,fundMo:S.fundMo,events:S.events,arrEvents:S.arrEvents,useRevenue:true,useEvents:true,useFunding:false},60);
+  const without=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,growth2:sc.growth2,churn2:sc.churn2,fundAmt:0,fundMo:S.fundMo,events:S.events.filter(e=>e.id!==ev.id),arrEvents:S.arrEvents,useRevenue:true,useEvents:true,useFunding:false},60);
   return Math.round((without.runway-baseline.runway)*30.4375);
 }
 
 function arrEventImpactDays(ev){
   const sc=S.sc.S2;
-  const baseline=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events,arrEvents:S.arrEvents,useRevenue:true,useEvents:true,useFunding:false},60);
-  const without=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,fundAmt:0,fundMo:S.fundMo,events:S.events,arrEvents:S.arrEvents.filter(e=>e.id!==ev.id),useRevenue:true,useEvents:true,useFunding:false},60);
+  const baseline=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,growth2:sc.growth2,churn2:sc.churn2,fundAmt:0,fundMo:S.fundMo,events:S.events,arrEvents:S.arrEvents,useRevenue:true,useEvents:true,useFunding:false},60);
+  const without=simulate({startCash:S.cash,startMrr:S.mrr,startBurn:S.burn,growth:sc.growth,churn:sc.churn,expGrowth:sc.expGrowth,growth2:sc.growth2,churn2:sc.churn2,fundAmt:0,fundMo:S.fundMo,events:S.events,arrEvents:S.arrEvents.filter(e=>e.id!==ev.id),useRevenue:true,useEvents:true,useFunding:false},60);
   return Math.round((baseline.runway-without.runway)*30.4375);
 }
 
@@ -630,6 +657,10 @@ function renderScRows(){
     const noRev=!sc.useRevenue;
     const isS1=id==='S1';
 
+    const inp = (id, key, step, disabled) => disabled
+      ? `<input class="sc-inp" type="number" value="${S.sc[id][key]||0}" disabled>`
+      : `<div class="sc-inp-row"><button class="sc-step dn" onclick="stepSc('${id}','${key}',-${step})">−</button><input class="sc-inp" type="number" step="${step}" value="${S.sc[id][key]}" oninput="setSc('${id}','${key}',this.value)"><button class="sc-step up" onclick="stepSc('${id}','${key}',${step})">+</button></div>`;
+
     return`<div class="srow${m.isPlan?' plan':''}">
       <div>
         <div class="sn-name">${m.name}${m.isPlan?'<span class="plan-badge">plan</span>':''}</div>
@@ -640,24 +671,11 @@ function renderScRows(){
         ${fRwExact(rw)?`<div class="rw-days">${fRwExact(rw)}</div>`:''}
         <div class="rw-pill ${m.pill}">${dateTxt}</div>
       </div>
-      <div class="sc-inp-wrap">
-        ${noRev
-          ? `<div class="sc-inp-row"><input class="sc-inp" type="number" value="${sc.growth}" disabled><span class="sc-step dn off">−</span><span class="sc-step up off">+</span></div><div class="sc-inp-lbl">n/a</div>`
-          : `<div class="sc-inp-row"><button class="sc-step dn" onclick="stepSc('${id}','growth',-1)">−</button><input class="sc-inp" type="number" step="1" value="${sc.growth}" oninput="setSc('${id}','growth',this.value)"><button class="sc-step up" onclick="stepSc('${id}','growth',1)">+</button></div>`
-        }
-      </div>
-      <div class="sc-inp-wrap">
-        ${noRev
-          ? `<div class="sc-inp-row"><input class="sc-inp" type="number" value="${sc.churn}" disabled><span class="sc-step dn off">−</span><span class="sc-step up off">+</span></div>`
-          : `<div class="sc-inp-row"><button class="sc-step dn" onclick="stepSc('${id}','churn',-1)">−</button><input class="sc-inp" type="number" step="1" value="${sc.churn}" oninput="setSc('${id}','churn',this.value)"><button class="sc-step up" onclick="stepSc('${id}','churn',1)">+</button></div>`
-        }
-      </div>
-      <div class="sc-inp-wrap">
-        ${isS1
-          ? `<div class="sc-inp-row"><input class="sc-inp" type="number" value="${sc.expGrowth}" disabled></div><div class="sc-inp-lbl">COGS est.</div>`
-          : `<div class="sc-inp-row"><button class="sc-step dn" onclick="stepSc('${id}','expGrowth',-0.5)">−</button><input class="sc-inp" type="number" step="0.5" value="${sc.expGrowth}" oninput="setSc('${id}','expGrowth',this.value)"><button class="sc-step up" onclick="stepSc('${id}','expGrowth',0.5)">+</button></div>`
-        }
-      </div>
+      <div class="sc-inp-wrap">${inp(id,'growth',1,noRev)}</div>
+      <div class="sc-inp-wrap">${inp(id,'growth2',1,noRev||isS1)}</div>
+      <div class="sc-inp-wrap">${inp(id,'churn',1,noRev)}</div>
+      <div class="sc-inp-wrap">${inp(id,'churn2',1,noRev||isS1)}</div>
+      <div class="sc-inp-wrap">${inp(id,'expGrowth',0.5,isS1)}${isS1?'<div class="sc-inp-lbl">COGS</div>':''}</div>
     </div>`;
   }).join('');
   document.getElementById('srows').innerHTML=html;
@@ -740,10 +758,12 @@ function getArrData(id){
   const deals=S.arrEvents.map(e=>({mrrContrib:e.amount/12,startMonth:e.month,renewalMonth:e.month+12}));
   const arr=[S.mrr*12];
   for(let m=1;m<=HORIZON;m++){
+    const g=(m>=PHASE2_START&&sc.growth2!==undefined)?sc.growth2:sc.growth;
+    const c=(m>=PHASE2_START&&sc.churn2!==undefined)?sc.churn2:sc.churn;
     if(sc.useRevenue){
-      organicMrr=Math.max(organicMrr+organicMrr*(sc.growth/100)-organicMrr*(sc.churn/100),0);
+      organicMrr=Math.max(organicMrr+organicMrr*(g/100)-organicMrr*(c/100),0);
       for(const d of deals){
-        if(m===d.renewalMonth){d.mrrContrib=d.mrrContrib*(1-sc.churn/100);d.renewalMonth+=12;}
+        if(m===d.renewalMonth){d.mrrContrib=d.mrrContrib*(1-c/100);d.renewalMonth+=12;}
       }
     }
     let dealMrr=0;
@@ -797,12 +817,14 @@ function breakevenCrossMonth(id){
   let organicMrr=S.mrr;
   const deals=S.arrEvents.map(e=>({mrrContrib:e.amount/12,startMonth:e.month,renewalMonth:e.month+12}));
   for(let m=1;m<=HORIZON;m++){
+    const g=(m>=PHASE2_START&&sc.growth2!==undefined)?sc.growth2:sc.growth;
+    const c=(m>=PHASE2_START&&sc.churn2!==undefined)?sc.churn2:sc.churn;
     const burnAtM=S.burn*Math.pow(1+sc.expGrowth/100,m-1);
     let dealMrr=0;
     for(const d of deals) if(m>=d.startMonth) dealMrr+=d.mrrContrib;
     if(organicMrr+dealMrr>=burnAtM) return m;
-    organicMrr=Math.max(organicMrr+organicMrr*(sc.growth/100)-organicMrr*(sc.churn/100),0);
-    for(const d of deals) if(m===d.renewalMonth){d.mrrContrib*=(1-sc.churn/100);d.renewalMonth+=12;}
+    organicMrr=Math.max(organicMrr+organicMrr*(g/100)-organicMrr*(c/100),0);
+    for(const d of deals) if(m===d.renewalMonth){d.mrrContrib*=(1-c/100);d.renewalMonth+=12;}
   }
   return null;
 }
