@@ -156,7 +156,7 @@ canvas{display:block}
 
 <div class="ph">
   <span class="ph-ttl">RUNWAY DASHBOARD</span>
-  <span class="ph-sub">22-month horizon · Mar '26 → Dec '27</span>
+  <span class="ph-sub">46-month horizon · Mar '26 → Dec '29</span>
   <span class="live">LIVE</span>
 </div>
 
@@ -188,7 +188,7 @@ canvas{display:block}
     <div class="hr"></div>
     <div class="sec">Funding Event</div>
     <div class="ig"><div class="ig-lbl">Amount ($) <em>blank = none</em></div><input class="fi" type="number" id="in-fund-amt" placeholder="e.g. 2000000"></div>
-    <div class="ig"><div class="ig-lbl">Closes in Month <em>1–36</em></div><input class="fi" type="number" id="in-fund-mo" value="6" min="1" max="36"></div>
+    <div class="ig"><div class="ig-lbl">Closes in Month <em>1–46</em></div><input class="fi" type="number" id="in-fund-mo" value="6" min="1" max="46"></div>
     <div class="fund-impact" id="fund-impact"></div>
   </div>
 
@@ -237,7 +237,7 @@ canvas{display:block}
           <button class="btn-ok" onclick="saveEvent()">Add</button>
           <button class="btn-no" onclick="closeForm()">Cancel</button>
         </div>
-        <div style="font-size:9px;color:var(--muted);font-family:var(--mono);margin-top:5px;padding:0 2px" id="ef-hint"></div>
+        <div style="font-size:9px;color:var(--muted);font-family:var(--mono);margin-top:5px;padding:0 2px" id="ef-hint">Month numbers: 1=Mar '26 … 22=Dec '27 … 34=Dec '28 … 46=Dec '29. Leave "To" blank for single month.</div>
       </div>
     </div>
 
@@ -267,7 +267,7 @@ canvas{display:block}
 
 <script>
 // ── HORIZON ──────────────────────────────────────────────────────────────
-const HORIZON = 22; // Mar '26 → Dec '27
+const HORIZON = 46; // Mar '26 → Dec '29
 
 // ── STATE ────────────────────────────────────────────────────────────────
 const S = {
@@ -562,7 +562,7 @@ function toggleRecurring(){
     toEl.style.display=isRecur?'none':'';
     document.getElementById('ef-mo').options[0].text='From month…';
     document.getElementById('ef-hint').textContent=isRecur
-      ?'Recurring: applies every month from selected month through Dec \'27.'
+      ?'Recurring: applies every month from selected month through Dec \'29.'
       :'One-time: select From and To month (same month = single occurrence).';
   }
 }
