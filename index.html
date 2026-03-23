@@ -200,7 +200,20 @@ canvas{display:block}
     <div class="hr"></div>
     <div class="sec">Funding Event</div>
     <div class="ig"><div class="ig-lbl">Amount ($) <em>blank = none</em></div><input class="fi" type="number" id="in-fund-amt" placeholder="e.g. 2000000"></div>
-    <div class="ig"><div class="ig-lbl">Closes in Month <em>1–46</em></div><input class="fi" type="number" id="in-fund-mo" value="6" min="1" max="46"></div>
+    <div class="ig"><div class="ig-lbl">Closes in Month</div>
+      <select class="fi" id="in-fund-mo">
+        <option value="4">Jun '26</option>
+        <option value="5">Jul '26</option>
+        <option value="6" selected>Aug '26</option>
+        <option value="7">Sep '26</option>
+        <option value="8">Oct '26</option>
+        <option value="9">Nov '26</option>
+        <option value="10">Dec '26</option>
+        <option value="11">Jan '27</option>
+        <option value="12">Feb '27</option>
+        <option value="13">Mar '27</option>
+      </select>
+    </div>
     <div class="fund-impact" id="fund-impact"></div>
   </div>
 
@@ -271,7 +284,10 @@ canvas{display:block}
         <div class="c-li"><div class="c-line" style="background:var(--red)"></div>S1 Conservative</div>
         <div class="c-li"><div class="c-line" style="background:var(--blu)"></div>S2 Realistic</div>
         <div class="c-li"><div class="c-line" style="background:var(--grn)"></div>S3 Optimistic</div>
+        <div class="c-li"><div class="c-line" style="border-top:2px dashed #555;background:none;height:0;width:22px;border-radius:0"></div>S3 Hypothetical</div>
       </div>
+      <!-- Cash exhaustion inline line -->
+      <div id="cash-exhaustion-box" style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:4px;margin-bottom:6px;letter-spacing:.04em"></div>
       <canvas id="chart" height="130"></canvas>
     </div>
 
@@ -835,15 +851,27 @@ function initChart(){
   chart=new Chart(ctx,{
     type:'line',
     data:{labels,datasets:[
-      {label:'S1',data:[],borderColor:'#ef4444',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:0.2},
-      {label:'S2',data:[],borderColor:'#3b82f6',backgroundColor:'transparent',borderWidth:2,  pointRadius:0,tension:0.2},
-      {label:'S3',data:[],borderColor:'#22c55e',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:0.2},
+      // Solid segments (up to cashout)
+      {label:'S1',     data:[],borderColor:'#ef4444',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:0.2},
+      {label:'S2',     data:[],borderColor:'#3b82f6',backgroundColor:'transparent',borderWidth:2,  pointRadius:0,tension:0.2},
+      {label:'S3',     data:[],borderColor:'#22c55e',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:0.2},
+      // Dashed hypothetical segments (after cashout)
+      {label:'S1 hyp', data:[],borderColor:'rgba(239,68,68,0.3)',  backgroundColor:'transparent',borderWidth:1,borderDash:[4,4],pointRadius:0,tension:0.2},
+      {label:'S2 hyp', data:[],borderColor:'rgba(59,130,246,0.3)', backgroundColor:'transparent',borderWidth:1,borderDash:[4,4],pointRadius:0,tension:0.2},
+      {label:'S3 hyp', data:[],borderColor:'rgba(34,197,94,0.3)',  backgroundColor:'transparent',borderWidth:1,borderDash:[4,4],pointRadius:0,tension:0.2},
     ]},
     options:{
       responsive:true,interaction:{mode:'index',intersect:false},
       plugins:{
         legend:{display:false},
-        tooltip:{backgroundColor:'#1e2535',borderColor:'rgba(255,255,255,0.07)',borderWidth:.5,titleColor:'#9ca3af',bodyColor:'#e8eaf0',titleFont:{family:"'IBM Plex Mono',monospace",size:10},bodyFont:{family:"'IBM Plex Mono',monospace",size:11},callbacks:{label:c=>` ${c.dataset.label}: ${fs$(c.parsed.y)}`}}
+        tooltip:{
+          backgroundColor:'#1e2535',borderColor:'rgba(255,255,255,0.07)',borderWidth:.5,
+          titleColor:'#9ca3af',bodyColor:'#e8eaf0',
+          titleFont:{family:"'IBM Plex Mono',monospace",size:10},
+          bodyFont:{family:"'IBM Plex Mono',monospace",size:11},
+          filter:item=>!item.dataset.label.includes('hyp'),
+          callbacks:{label:c=>` ${c.dataset.label}: ${fs$(c.parsed.y)}`}
+        }
       },
       scales:{
         x:{grid:{color:'rgba(255,255,255,0.04)',drawTicks:false},ticks:{color:'#6b7280',font:{family:"'IBM Plex Mono',monospace",size:9},maxRotation:45,autoSkip:true,maxTicksLimit:12},border:{color:'rgba(255,255,255,0.07)'}},
@@ -852,10 +880,52 @@ function initChart(){
     }
   });
 }
+
+function splitAtCashout(arr){
+  // Returns {solid, dashed} arrays — solid stops at first $0, dashed continues
+  const solid=[], dashed=[];
+  let exhausted=false;
+  for(let i=0;i<arr.length;i++){
+    if(!exhausted){
+      solid.push(arr[i]);
+      dashed.push(null);
+      if(arr[i]===0 && i>0) exhausted=true;
+    } else {
+      solid.push(null);
+      dashed.push(arr[i]);
+    }
+  }
+  return{solid,dashed};
+}
+
 function updateChart(){
   if(!chart)return;
-  ['S1','S2','S3'].forEach((id,i)=>{chart.data.datasets[i].data=runSc(id,HORIZON).arr;});
+  ['S1','S2','S3'].forEach((id,i)=>{
+    const raw=runSc(id,HORIZON).arr;
+    const{solid,dashed}=splitAtCashout(raw);
+    chart.data.datasets[i].data=solid;
+    chart.data.datasets[i+3].data=dashed;
+  });
   chart.update('none');
+  updateCashExhaustionBox();
+}
+
+function cashoutMonth(id){
+  const arr=runSc(id,HORIZON).arr;
+  for(let i=1;i<arr.length;i++) if(arr[i]===0) return i;
+  return null;
+}
+
+function updateCashExhaustionBox(){
+  const box=document.getElementById('cash-exhaustion-box');
+  const colors={S1:'var(--rs)',S2:'var(--bs)',S3:'var(--gs)'};
+  const parts=['S1','S2','S3'].map(id=>{
+    const m=cashoutMonth(id);
+    const col=colors[id];
+    const dateTxt=m?moLbl(m):'survives';
+    return `<span style="color:${col}">${id} ${dateTxt}</span>`;
+  });
+  box.innerHTML=`Cash out: ${parts.join(' &nbsp;·&nbsp; ')}`;
 }
 
 function refresh(){
@@ -865,6 +935,7 @@ function refresh(){
   document.getElementById('exec-body').innerHTML=buildExec();
   updateChart();
   updateArrChart();
+  updateCashExhaustionBox();
 }
 
 function numIn(id,key){
@@ -876,7 +947,9 @@ function numIn(id,key){
 function init(){
   numIn('in-cash','cash');
   numIn('in-burn','burn');
-  numIn('in-fund-mo','fundMo');
+  document.getElementById('in-fund-mo').addEventListener('change',function(){
+    const v=parseInt(this.value); if(!isNaN(v)){S.fundMo=v;refresh();}
+  });
   // ARR input: convert to MRR internally
   document.getElementById('in-arr').addEventListener('input',function(){
     const v=parseFloat(this.value);
