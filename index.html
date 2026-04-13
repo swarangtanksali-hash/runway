@@ -168,7 +168,7 @@ canvas{display:block}
 
 <div class="ph">
   <span class="ph-ttl">RUNWAY DASHBOARD</span>
-  <span class="ph-sub">46-month horizon · Mar '26 → Dec '29</span>
+  <span class="ph-sub">45-month horizon · Apr '26 → Dec '29</span>
   <span class="live">LIVE</span>
 </div>
 
@@ -202,16 +202,16 @@ canvas{display:block}
     <div class="ig"><div class="ig-lbl">Amount ($) <em>blank = none</em></div><input class="fi" type="number" id="in-fund-amt" placeholder="e.g. 2000000"></div>
     <div class="ig"><div class="ig-lbl">Closes in Month</div>
       <select class="fi" id="in-fund-mo">
-        <option value="4">Jun '26</option>
-        <option value="5">Jul '26</option>
-        <option value="6" selected>Aug '26</option>
-        <option value="7">Sep '26</option>
-        <option value="8">Oct '26</option>
-        <option value="9">Nov '26</option>
-        <option value="10">Dec '26</option>
-        <option value="11">Jan '27</option>
-        <option value="12">Feb '27</option>
-        <option value="13">Mar '27</option>
+        <option value="3">Jun '26</option>
+        <option value="4">Jul '26</option>
+        <option value="5" selected>Aug '26</option>
+        <option value="6">Sep '26</option>
+        <option value="7">Oct '26</option>
+        <option value="8">Nov '26</option>
+        <option value="9">Dec '26</option>
+        <option value="10">Jan '27</option>
+        <option value="11">Feb '27</option>
+        <option value="12">Mar '27</option>
       </select>
     </div>
     <div class="fund-impact" id="fund-impact"></div>
@@ -273,7 +273,7 @@ canvas{display:block}
           <button class="btn-ok" onclick="saveEvent()">Add</button>
           <button class="btn-no" onclick="closeForm()">Cancel</button>
         </div>
-        <div style="font-size:9px;color:var(--muted);font-family:var(--mono);margin-top:5px;padding:0 2px" id="ef-hint">Month numbers: 1=Mar '26 … 22=Dec '27 … 34=Dec '28 … 46=Dec '29. Leave "To" blank for single month.</div>
+        <div style="font-size:9px;color:var(--muted);font-family:var(--mono);margin-top:5px;padding:0 2px" id="ef-hint">Month numbers: 1=Apr '26 … 21=Dec '27 … 33=Dec '28 … 45=Dec '29. Leave "To" blank for single month.</div>
       </div>
     </div>
 
@@ -306,15 +306,15 @@ canvas{display:block}
 
 <script>
 // ── HORIZON ──────────────────────────────────────────────────────────────
-const HORIZON = 46; // Mar '26 → Dec '29
+const HORIZON = 45; // Apr '26 → Dec '29
 
 // ── STATE ────────────────────────────────────────────────────────────────
 const S = {
   cash:4500000, mrr:14750, burn:350000,
-  fundAmt:0, fundMo:6,
+  fundAmt:0, fundMo:5,
   events:[
-    {id:1,label:'AI Burst',       type:'expense',amount:25000, month:2, monthEnd:4},
-    {id:2,label:'Marketing Burst',type:'expense',amount:37500, month:6, monthEnd:7},
+    {id:1,label:'AI Burst',       type:'expense',amount:25000, month:1, monthEnd:3},
+    {id:2,label:'Marketing Burst',type:'expense',amount:37500, month:5, monthEnd:6},
   ],
   arrEvents:[], // one-time ARR deals: {id, label, amount (ARR $), month}
   sc:{
@@ -328,7 +328,7 @@ let nextId=3;
 // ── DATES ─────────────────────────────────────────────────────────────────
 const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 function moLbl(m){ // m=1→Mar'26
-  const d=new Date(2026,2,1);
+  const d=new Date(2026,3,1);
   d.setMonth(d.getMonth()+(m-1));
   return MO[d.getMonth()]+" '"+(d.getFullYear()%100).toString().padStart(2,'0');
 }
@@ -791,7 +791,7 @@ function getArrData(id){
 
 function initArrChart(){
   const ctx=document.getElementById('arr-chart').getContext('2d');
-  const labels=Array.from({length:HORIZON+1},(_,i)=>i===0?"Mar '26":moLbl(i+1));
+  const labels=Array.from({length:HORIZON+1},(_,i)=>i===0?"Apr '26":moLbl(i+1));
 
   arrChart=new Chart(ctx,{
     type:'line',
@@ -847,7 +847,7 @@ function breakevenCrossMonth(id){
 let chart=null;
 function initChart(){
   const ctx=document.getElementById('chart').getContext('2d');
-  const labels=Array.from({length:HORIZON+1},(_,i)=>i===0?"Mar '26":moLbl(i+1));
+  const labels=Array.from({length:HORIZON+1},(_,i)=>i===0?"Apr '26":moLbl(i+1));
   chart=new Chart(ctx,{
     type:'line',
     data:{labels,datasets:[
