@@ -190,12 +190,12 @@ canvas{display:block}
   <!-- LEFT PANEL -->
   <div class="lp">
     <div class="sec">Baseline Inputs</div>
-    <div class="ig"><div class="ig-lbl">Starting Cash ($)</div><input class="fi" type="number" id="in-cash" value="4880000"></div>
+    <div class="ig"><div class="ig-lbl">Starting Cash ($)</div><input class="fi" type="number" id="in-cash" value="4500000"></div>
     <div class="ig">
       <div class="ig-lbl">Current ARR ($) <em id="mrr-hint" style="color:var(--muted);font-size:9px"></em></div>
-      <input class="fi" type="number" id="in-arr" value="171000">
+      <input class="fi" type="number" id="in-arr" value="177000">
     </div>
-    <div class="ig"><div class="ig-lbl">Monthly Gross Burn ($)</div><input class="fi" type="number" id="in-burn" value="345000"></div>
+    <div class="ig"><div class="ig-lbl">Monthly Gross Burn ($)</div><input class="fi" type="number" id="in-burn" value="350000"></div>
 
     <div class="hr"></div>
     <div class="sec">Funding Event</div>
@@ -310,7 +310,7 @@ const HORIZON = 46; // Mar '26 → Dec '29
 
 // ── STATE ────────────────────────────────────────────────────────────────
 const S = {
-  cash:4880000, mrr:14250, burn:345000,
+  cash:4500000, mrr:14750, burn:350000,
   fundAmt:0, fundMo:6,
   events:[
     {id:1,label:'AI Burst',       type:'expense',amount:25000, month:2, monthEnd:4},
